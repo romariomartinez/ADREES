@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+server.out.log
+server.err.log
+exports/*
+!exports/.gitkeep
+data/*.db
+data/*.db-*

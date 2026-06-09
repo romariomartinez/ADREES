@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Asistente ADRES FUR</title>
+    <link rel="stylesheet" href="/static/app.css">
+  </head>
+  <body>
+    <section id="auth-screen" class="auth-screen">
+      <form id="auth-form" class="auth-card">
+        <div class="brand auth-brand">
+          <span class="brand-mark">A</span>
+          <div>
+            <strong>ADRES FUR</strong>
+            <span id="auth-subtitle">Ingreso de facturadores</span>
+          </div>
+        </div>
+        <label class="auth-field">
+          <span>Usuario</span>
+          <input id="auth-username" autocomplete="username" required>
+        </label>
+        <label class="auth-field" id="display-name-field" hidden>
+          <span>Nombre del facturador</span>
+          <input id="auth-display-name" autocomplete="name">
+        </label>
+        <label class="auth-field">
+          <span>Clave</span>
+          <input id="auth-password" type="password" autocomplete="current-password" required>
+        </label>
+        <div id="auth-message" class="auth-message" hidden></div>
+        <button id="auth-submit" class="primary" type="submit">Ingresar</button>
+        <button id="auth-toggle" class="secondary" type="button">Crear usuario nuevo</button>
+      </form>
+    </section>
+
+    <div id="app-shell" class="shell" hidden>
+      <aside class="sidebar">
+        <div class="brand profile-brand">
+          <div class="profile-menu-wrap">
+            <button id="profile-menu-button" class="brand-mark profile-avatar" type="button" aria-haspopup="true" aria-expanded="false">A</button>
+            <div id="profile-menu" class="profile-menu" hidden>
+              <button id="logout-button" class="profile-menu-item" data-icon="logout" type="button">Cerrar sesion</button>
+            </div>
+          </div>
+          <div>
+            <strong id="current-user">Sin usuario</strong>
+            <span id="current-role">Perfil activo</span>
+          </div>
+        </div>
+        <nav class="tabs" aria-label="Formularios">
+          <button class="tab active" data-template="fur" type="button">Plantilla_FUR_Primera_Vez.xlsx</button>
+          <button class="tab" data-template="ser" type="button">Plantilla_SER.xlsx</button>
+        </nav>
+        <div class="status-panel">
+          <div class="status-head">
+            <span>Estado</span>
+            <strong id="global-status">Sin validar</strong>
+          </div>
+          <div id="section-list" class="section-list"></div>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p id="eyebrow">Formulario</p>
+            <h1 id="screen-title">Cargando...</h1>
+          </div>
+          <div class="actions">
+            <button id="sync-ser" class="secondary" data-icon="sync" type="button">Sincronizar factura</button>
+            <button id="save-draft-button" class="secondary" data-icon="save" type="button">Guardar borrador</button>
+            <button id="drafts-button" class="secondary" data-icon="drafts" type="button">Borradores</button>
+            <button id="history-button" class="secondary" data-icon="history" type="button">Historial</button>
+            <button id="admin-button" class="secondary" data-icon="users" type="button" hidden>Usuarios</button>
+            <button id="clear-form" class="secondary" data-icon="clear" type="button">Limpiar</button>
+            <button id="export-form" class="primary" data-icon="download" type="button">Exportar Excel</button>
+          </div>
+        </header>
+
+        <div id="message" class="message" hidden></div>
+        <section id="content" class="content" aria-live="polite"></section>
+      </main>
+    </div>
+
+    <template id="field-template">
+      <label class="field">
+        <span class="field-label"></span>
+        <span class="control"></span>
+        <small class="hint"></small>
+        <small class="error"></small>
+      </label>
+    </template>
+
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>
