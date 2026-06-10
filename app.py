@@ -18,6 +18,13 @@ from urllib.parse import parse_qs, unquote, urlparse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 try:
+    import psycopg
+    from psycopg.rows import dict_row
+except ImportError:
+    psycopg = None
+    dict_row = None
+
+try:
     import openpyxl
 except ImportError as exc:
     raise SystemExit(
@@ -26,13 +33,33 @@ except ImportError as exc:
 
 
 ROOT = Path(__file__).resolve().parent
-DATA_DIR = Path(os.environ.get("ADRES_DATA_DIR", ROOT / "data"))
+DATABASE_URL = (
+    os.environ.get("DATABASE_URL")
+    or os.environ.get("SUPABASE_DATABASE_URL")
+    or os.environ.get("POSTGRES_URL")
+    or ""
+)
+USE_POSTGRES = bool(DATABASE_URL)
+IS_VERCEL = bool(os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV"))
+DATA_DIR = Path(
+    os.environ.get("ADRES_DATA_DIR")
+    or os.environ.get("RAILWAY_VOLUME_MOUNT_PATH")
+    or ROOT / "data"
+)
 SCHEMA_PATH = ROOT / "data" / "schema.json"
 DIVIPOLA_PATH = ROOT / "data" / "divipola.json"
 STATIC_DIR = ROOT / "static"
 TEMPLATE_DIR = ROOT / "templates"
 EXPORT_DIR = Path(os.environ.get("ADRES_EXPORT_DIR", DATA_DIR / "exports"))
 DB_PATH = Path(os.environ.get("ADRES_DB_PATH", DATA_DIR / "app.db"))
+SAVE_EXPORT_COPY = os.environ.get("ADRES_SAVE_EXPORT_COPY")
+if SAVE_EXPORT_COPY is None:
+    SAVE_EXPORT_COPY_ENABLED = not IS_VERCEL
+else:
+    SAVE_EXPORT_COPY_ENABLED = SAVE_EXPORT_COPY.strip().lower() not in {"0", "false", "no", "off"}
+DB_INTEGRITY_ERRORS = (sqlite3.IntegrityError,)
+if psycopg is not None:
+    DB_INTEGRITY_ERRORS = (sqlite3.IntegrityError, psycopg.IntegrityError)
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 TIME_RE = re.compile(r"^(?:[01]\d|2[0-3]):[0-5]\d$")
 DIGITS_RE = re.compile(r"^\d+$")
@@ -40,6 +67,7 @@ INVOICE_PREFIX = "FVEE"
 ROLE_SUPER_ADMIN = "super_admin"
 ROLE_FACTURADOR = "facturador"
 VALID_ROLES = {ROLE_SUPER_ADMIN, ROLE_FACTURADOR}
+SESSION_COOKIE = "adres_session"
 DIVIPOLA_FIELD_NAMES = {
     "Codigo_municipio_residencia_victima",
     "Codigo_municipio_ocurrencia_evento",
@@ -61,7 +89,6 @@ FREQUENT_FIELD_NAMES = {
     "Direccion_de_residencia_del_propietario",
     "Direccion_de_residencia_del_conductor",
 }
-SESSIONS: dict[str, dict] = {}
 
 
 def load_schema() -> dict:
@@ -86,19 +113,81 @@ def now_iso() -> str:
     return datetime.now().isoformat(timespec="seconds")
 
 
-def db_connect():
+def db_sql(sql: str) -> str:
+    if USE_POSTGRES:
+        return sql.replace("?", "%s")
+    return sql
+
+
+def like_op() -> str:
+    return "ILIKE" if USE_POSTGRES else "LIKE"
+
+
+class DatabaseConnection:
+    def __init__(self, conn):
+        self.conn = conn
+
+    def __enter__(self):
+        self.conn.__enter__()
+        return self
+
+    def __exit__(self, exc_type, exc, traceback):
+        try:
+            return self.conn.__exit__(exc_type, exc, traceback)
+        finally:
+            self.conn.close()
+
+    def execute(self, sql: str, params: tuple | list = ()):
+        return self.conn.execute(db_sql(sql), params)
+
+    def insert_and_get_id(self, sql: str, params: tuple | list = ()) -> int:
+        if USE_POSTGRES:
+            cursor = self.execute(f"{sql.strip()} RETURNING id", params)
+            return int(cursor.fetchone()["id"])
+        cursor = self.execute(sql, params)
+        return int(cursor.lastrowid)
+
+
+def db_connect() -> DatabaseConnection:
+    if USE_POSTGRES:
+        if psycopg is None:
+            raise SystemExit(
+                "Falta la dependencia psycopg para conectar con Supabase/Postgres. "
+                "Instala con: python -m pip install -r requirements.txt"
+            )
+        conn = psycopg.connect(DATABASE_URL, row_factory=dict_row, prepare_threshold=None)
+        return DatabaseConnection(conn)
+
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH, timeout=30)
     conn.row_factory = sqlite3.Row
-    return conn
+    return DatabaseConnection(conn)
+
+
+def table_columns(conn: DatabaseConnection, table_name: str) -> set[str]:
+    if USE_POSTGRES:
+        rows = conn.execute(
+            """
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_schema = 'public' AND table_name = ?
+            """,
+            (table_name,),
+        ).fetchall()
+        return {row["column_name"] for row in rows}
+    rows = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+    return {row["name"] for row in rows}
 
 
 def init_db():
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with db_connect() as conn:
+        id_type = "BIGSERIAL" if USE_POSTGRES else "INTEGER"
+        user_id_type = "BIGINT" if USE_POSTGRES else "INTEGER"
+        primary_key = "PRIMARY KEY" if USE_POSTGRES else "PRIMARY KEY AUTOINCREMENT"
         conn.execute(
-            """
+            f"""
             CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id {id_type} {primary_key},
                 username TEXT NOT NULL UNIQUE,
                 display_name TEXT NOT NULL,
                 role TEXT NOT NULL DEFAULT 'facturador',
@@ -109,7 +198,7 @@ def init_db():
             )
             """
         )
-        columns = {row["name"] for row in conn.execute("PRAGMA table_info(users)").fetchall()}
+        columns = table_columns(conn, "users")
         if "role" not in columns:
             conn.execute("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'facturador'")
         if "active" not in columns:
@@ -122,10 +211,27 @@ def init_db():
         if first_user and not super_admin:
             conn.execute("UPDATE users SET role = ? WHERE id = ?", (ROLE_SUPER_ADMIN, first_user["id"]))
         conn.execute(
+            f"""
+            CREATE TABLE IF NOT EXISTS sessions (
+                id TEXT PRIMARY KEY,
+                user_id {user_id_type} NOT NULL,
+                created_at TEXT NOT NULL,
+                last_seen_at TEXT NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            )
             """
+        )
+        conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_sessions_user
+            ON sessions(user_id)
+            """
+        )
+        conn.execute(
+            f"""
             CREATE TABLE IF NOT EXISTS invoice_records (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
+                id {id_type} {primary_key},
+                user_id {user_id_type} NOT NULL,
                 template_id TEXT NOT NULL,
                 invoice_number TEXT NOT NULL,
                 filename TEXT NOT NULL,
@@ -136,10 +242,10 @@ def init_db():
             """
         )
         conn.execute(
-            """
+            f"""
             CREATE TABLE IF NOT EXISTS drafts (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
+                id {id_type} {primary_key},
+                user_id {user_id_type} NOT NULL,
                 template_id TEXT NOT NULL,
                 invoice_number TEXT NOT NULL,
                 payload_json TEXT NOT NULL,
@@ -163,10 +269,10 @@ def init_db():
             """
         )
         conn.execute(
-            """
+            f"""
             CREATE TABLE IF NOT EXISTS frequent_values (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
+                id {id_type} {primary_key},
+                user_id {user_id_type} NOT NULL,
                 field_name TEXT NOT NULL,
                 value TEXT NOT NULL,
                 label TEXT NOT NULL,
@@ -197,7 +303,7 @@ def verify_password(password: str, salt_text: str, hash_text: str) -> bool:
     return secrets.compare_digest(candidate, hash_text)
 
 
-def public_user(row: sqlite3.Row | dict) -> dict:
+def public_user(row: dict | sqlite3.Row) -> dict:
     return {
         "id": row["id"],
         "username": row["username"],
@@ -225,7 +331,7 @@ def create_user(username: str, password: str, display_name: str, role: str = ROL
     salt, password_hash = hash_password(password)
     try:
         with db_connect() as conn:
-            cursor = conn.execute(
+            user_id = conn.insert_and_get_id(
                 """
                 INSERT INTO users (username, display_name, role, active, password_salt, password_hash, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -234,10 +340,10 @@ def create_user(username: str, password: str, display_name: str, role: str = ROL
             )
             row = conn.execute(
                 "SELECT id, username, display_name, role, active FROM users WHERE id = ?",
-                (cursor.lastrowid,),
+                (user_id,),
             ).fetchone()
             return public_user(row), None
-    except sqlite3.IntegrityError:
+    except DB_INTEGRITY_ERRORS:
         return None, "Ese usuario ya existe."
 
 
@@ -249,6 +355,52 @@ def authenticate(username: str, password: str) -> dict | None:
         ).fetchone()
     if not row or not row["active"] or not verify_password(password, row["password_salt"], row["password_hash"]):
         return None
+    return public_user(row)
+
+
+def create_session(user: dict) -> str:
+    session_id = secrets.token_urlsafe(32)
+    timestamp = now_iso()
+    with db_connect() as conn:
+        conn.execute(
+            """
+            INSERT INTO sessions (id, user_id, created_at, last_seen_at)
+            VALUES (?, ?, ?, ?)
+            """,
+            (session_id, user["id"], timestamp, timestamp),
+        )
+    return session_id
+
+
+def delete_session(session_id: str):
+    if not session_id:
+        return
+    with db_connect() as conn:
+        conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
+
+
+def get_user_by_session(session_id: str) -> dict | None:
+    if not session_id:
+        return None
+    with db_connect() as conn:
+        row = conn.execute(
+            """
+            SELECT u.id, u.username, u.display_name, u.role, u.active
+            FROM sessions s
+            JOIN users u ON u.id = s.user_id
+            WHERE s.id = ?
+            """,
+            (session_id,),
+        ).fetchone()
+        if not row:
+            return None
+        if not row["active"]:
+            conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
+            return None
+        conn.execute(
+            "UPDATE sessions SET last_seen_at = ? WHERE id = ?",
+            (now_iso(), session_id),
+        )
     return public_user(row)
 
 
@@ -402,7 +554,7 @@ def user_activity(user_id: int, limit: int = 25) -> dict:
     }
 
 
-def history_record(row: sqlite3.Row) -> dict:
+def history_record(row: dict | sqlite3.Row) -> dict:
     return {
         "id": row["id"],
         "templateId": row["template_id"],
@@ -423,7 +575,8 @@ def list_history(filters: dict | None = None, limit: int = 200) -> list[dict]:
     query = clean(filters.get("q"))
     if query:
         like = f"%{query}%"
-        clauses.append("(r.invoice_number LIKE ? OR r.filename LIKE ? OR u.username LIKE ? OR u.display_name LIKE ?)")
+        op = like_op()
+        clauses.append(f"(r.invoice_number {op} ? OR r.filename {op} ? OR u.username {op} ? OR u.display_name {op} ?)")
         params.extend([like, like, like, like])
 
     template_id = clean(filters.get("templateId"))
@@ -433,18 +586,18 @@ def list_history(filters: dict | None = None, limit: int = 200) -> list[dict]:
 
     username = clean(filters.get("username"))
     if username:
-        clauses.append("u.username LIKE ?")
+        clauses.append(f"u.username {like_op()} ?")
         params.append(f"%{username}%")
 
     date_from = clean(filters.get("dateFrom"))
     if date_from:
-        clauses.append("date(r.created_at) >= date(?)")
-        params.append(date_from)
+        clauses.append("r.created_at >= ?")
+        params.append(f"{date_from}T00:00:00")
 
     date_to = clean(filters.get("dateTo"))
     if date_to:
-        clauses.append("date(r.created_at) <= date(?)")
-        params.append(date_to)
+        clauses.append("r.created_at <= ?")
+        params.append(f"{date_to}T23:59:59")
 
     where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
     with db_connect() as conn:
@@ -463,7 +616,7 @@ def list_history(filters: dict | None = None, limit: int = 200) -> list[dict]:
     return [history_record(row) for row in rows]
 
 
-def draft_record(row: sqlite3.Row) -> dict:
+def draft_record(row: dict | sqlite3.Row) -> dict:
     return {
         "id": row["id"],
         "templateId": row["template_id"],
@@ -484,7 +637,8 @@ def list_drafts(user: dict, filters: dict | None = None, limit: int = 200) -> li
     query = clean(filters.get("q"))
     if query:
         like = f"%{query}%"
-        clauses.append("(d.invoice_number LIKE ? OR d.template_id LIKE ?)")
+        op = like_op()
+        clauses.append(f"(d.invoice_number {op} ? OR d.template_id {op} ?)")
         params.extend([like, like])
 
     template_id = clean(filters.get("templateId"))
@@ -570,14 +724,13 @@ def save_draft(user: dict, template_id: str, rows: list[dict], draft_id: int | N
                     (payload_json, len(rows), timestamp, draft_id),
                 )
             else:
-                cursor = conn.execute(
+                draft_id = conn.insert_and_get_id(
                     """
                     INSERT INTO drafts (user_id, template_id, invoice_number, payload_json, row_count, created_at, updated_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                     """,
                     (user["id"], template_id, invoice_number, payload_json, len(rows), timestamp, timestamp),
                 )
-                draft_id = cursor.lastrowid
         row = conn.execute(
             """
             SELECT d.id, d.template_id, d.invoice_number, d.row_count, d.created_at, d.updated_at,
@@ -630,7 +783,7 @@ def list_frequent_values(user: dict, field_name: str, query: str = "", limit: in
     where = "user_id = ? AND field_name = ?"
     query = clean(query)
     if query:
-        where += " AND value LIKE ?"
+        where += f" AND value {like_op()} ?"
         params.append(f"%{query}%")
     with db_connect() as conn:
         rows = conn.execute(
@@ -917,9 +1070,10 @@ def export_workbook(template_id: str, rows: list[dict]) -> tuple[bytes, str]:
 
     filename = template["file"]
 
-    EXPORT_DIR.mkdir(parents=True, exist_ok=True)
-    local_copy = EXPORT_DIR / filename
-    workbook.save(local_copy)
+    if SAVE_EXPORT_COPY_ENABLED:
+        EXPORT_DIR.mkdir(parents=True, exist_ok=True)
+        local_copy = EXPORT_DIR / filename
+        workbook.save(local_copy)
 
     stream = BytesIO()
     workbook.save(stream)
@@ -942,10 +1096,12 @@ class AppHandler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def set_session_cookie(self, session_id: str):
-        self.send_header("Set-Cookie", f"adres_session={session_id}; Path=/; SameSite=Lax; HttpOnly")
+        secure = "; Secure" if IS_VERCEL else ""
+        self.send_header("Set-Cookie", f"{SESSION_COOKIE}={session_id}; Path=/; SameSite=Lax; HttpOnly{secure}")
 
     def clear_session_cookie(self):
-        self.send_header("Set-Cookie", "adres_session=; Path=/; Max-Age=0; SameSite=Lax; HttpOnly")
+        secure = "; Secure" if IS_VERCEL else ""
+        self.send_header("Set-Cookie", f"{SESSION_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax; HttpOnly{secure}")
 
     def send_auth_json(self, payload: dict, session_id: str | None = None, clear: bool = False, status: int = 200):
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -982,18 +1138,10 @@ class AppHandler(BaseHTTPRequestHandler):
 
     def current_user(self) -> dict | None:
         cookie = SimpleCookie(self.headers.get("Cookie", ""))
-        morsel = cookie.get("adres_session")
+        morsel = cookie.get(SESSION_COOKIE)
         if not morsel:
             return None
-        session_user = SESSIONS.get(morsel.value)
-        if not session_user:
-            return None
-        fresh = get_user_by_id(session_user["id"])
-        if not fresh or not fresh.get("active"):
-            SESSIONS.pop(morsel.value, None)
-            return None
-        SESSIONS[morsel.value] = fresh
-        return fresh
+        return get_user_by_session(morsel.value)
 
     def require_user(self) -> dict | None:
         user = self.current_user()
@@ -1238,9 +1386,9 @@ class AppHandler(BaseHTTPRequestHandler):
     def handle_auth(self, path: str):
         if path == "/api/logout":
             cookie = SimpleCookie(self.headers.get("Cookie", ""))
-            morsel = cookie.get("adres_session")
+            morsel = cookie.get(SESSION_COOKIE)
             if morsel:
-                SESSIONS.pop(morsel.value, None)
+                delete_session(morsel.value)
             self.send_auth_json({"ok": True, "user": None}, clear=True)
             return
 
@@ -1274,8 +1422,7 @@ class AppHandler(BaseHTTPRequestHandler):
                 self.send_json({"ok": False, "errors": [{"message": "Usuario o clave incorrectos."}]}, status=401)
                 return
 
-        session_id = secrets.token_urlsafe(32)
-        SESSIONS[session_id] = user
+        session_id = create_session(user)
         self.send_auth_json({"ok": True, "user": user}, session_id=session_id)
 
 

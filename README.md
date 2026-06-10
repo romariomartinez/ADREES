@@ -9,7 +9,7 @@ La app muestra campos por secciones, aplica reglas condicionales del diccionario
 
 Tambien incluye usuarios locales para facturadores. La primera vez que se abre, la app pide crear un `super admin`. Despues, solo ese super admin puede crear otros usuarios desde el boton `Usuarios`.
 
-Cada exportacion queda registrada con facturador, numero de factura, plantilla, cantidad de filas y fecha. La base local se guarda en `data/app.db` y no se versiona.
+Cada exportacion queda registrada con facturador, numero de factura, plantilla, cantidad de filas y fecha. Si no configuras una base externa, la base local se guarda en `data/app.db` y no se versiona. Si configuras `DATABASE_URL`, la app usa Supabase/Postgres.
 
 Los numeros de factura se normalizan para iniciar siempre con `FVEE`. Si el usuario escribe solo el consecutivo, la app antepone `FVEE` automaticamente.
 
@@ -51,26 +51,45 @@ Abrir:
 http://127.0.0.1:8787
 ```
 
+## Base de datos
+
+La app puede trabajar de dos formas:
+
+- Local: usa SQLite en `data/app.db`.
+- Internet: usa Supabase/Postgres cuando existe la variable `DATABASE_URL`.
+
+Para probar Supabase desde tu maquina:
+
+```powershell
+$env:DATABASE_URL="postgresql://usuario:clave@host:puerto/postgres?sslmode=require"
+python app.py --port 8787
+```
+
+La primera vez que arranca con Supabase, la app crea automaticamente las tablas de usuarios, historial, borradores y autocompletado.
+
 ## Desplegar en internet
 
-La opcion recomendada para esta version es Render, porque permite correr el servidor Python y usar un disco persistente para guardar `data/app.db` con usuarios, borradores e historial.
+Para esta version, la opcion recomendada sin pagar servidor es Vercel + Supabase.
+
+Supabase guarda usuarios, sesiones, borradores, historial, registros de facturas exportadas y datos de autocompletado en Postgres. Vercel solo ejecuta la app y entrega la interfaz.
 
 Pasos generales:
 
-1. Sube este proyecto a un repositorio GitHub privado.
-2. En Render, crea un `Blueprint` o `Web Service` desde ese repositorio.
-3. Si usas `render.yaml`, Render lee la configuracion automaticamente.
-4. Verifica que exista un disco persistente montado en `/var/data`.
-5. Abre la URL publica que Render entregue y crea el super admin.
+1. Crea un proyecto en Supabase.
+2. En Supabase, copia la cadena de conexion Postgres, agrega `?sslmode=require` si no lo trae y guardala.
+3. Sube este proyecto a un repositorio GitHub privado.
+4. En Vercel, crea un proyecto desde ese repositorio.
+5. En Vercel, agrega la variable de entorno `DATABASE_URL`.
+6. Despliega y abre la URL publica.
+7. Crea el super admin en el primer ingreso.
 
-El archivo `render.yaml` incluye:
+El archivo `vercel.json` configura:
 
-- instalacion con `pip install -r requirements.txt`
-- inicio con `python app.py --host 0.0.0.0 --port $PORT`
-- variable `ADRES_DATA_DIR=/var/data`
-- disco persistente de 1 GB
+- `/` para abrir `static/index.html`.
+- `/api/...` para ejecutar la funcion Python `api/index.py`.
+- inclusion de `data/` y `templates/` en la funcion, porque se necesitan para validar campos y exportar Excel.
 
-Vercel no es la mejor opcion para esta version porque la app usa SQLite local para usuarios, borradores e historial. Para Vercel convendria migrar la base a Postgres/Supabase/Neon y adaptar el backend a WSGI/ASGI o funciones serverless.
+Con Supabase no necesitas disco persistente en Vercel para usuarios, historial ni borradores. Las copias locales de Excel generadas en `exports/` se desactivan automaticamente en Vercel; el archivo que descarga el usuario se genera en memoria en cada exportacion.
 
 ## Estructura
 
