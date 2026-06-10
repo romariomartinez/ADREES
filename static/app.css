@@ -6,14 +6,14 @@
   --line-strong: #b9c4cf;
   --text: #1c2733;
   --muted: #627184;
-  --nav: #132331;
-  --nav-soft: #1c3142;
+  --nav: #14283c;
+  --nav-soft: #1d3a52;
   --nav-line: rgba(255, 255, 255, 0.1);
-  --nav-muted: #a6b7c8;
-  --accent: #0f766e;
-  --accent-dark: #0b5f59;
-  --accent-soft: #e5f4f2;
-  --accent-2: #315fbd;
+  --nav-muted: #aac0d1;
+  --accent: #32b4b4;
+  --accent-dark: #238d8d;
+  --accent-soft: #e4f7f7;
+  --accent-2: #17304a;
   --warning: #8a5a00;
   --warning-soft: #fff6df;
   --danger: #b3261e;
@@ -63,7 +63,7 @@ button {
   min-height: 100vh;
   padding: 28px;
   background:
-    linear-gradient(135deg, rgba(15, 118, 110, 0.12) 0%, rgba(49, 95, 189, 0.06) 48%, rgba(255, 255, 255, 0) 78%),
+    linear-gradient(135deg, rgba(50, 180, 180, 0.16) 0%, rgba(23, 48, 74, 0.06) 48%, rgba(255, 255, 255, 0) 78%),
     linear-gradient(180deg, #f8fafb 0%, #edf2f5 100%),
     #edf2f5;
 }
@@ -147,7 +147,29 @@ button {
   background: var(--accent);
   color: white;
   font-weight: 800;
-  box-shadow: 0 8px 16px rgba(15, 118, 110, 0.28);
+  box-shadow: 0 8px 16px rgba(50, 180, 180, 0.28);
+  overflow: hidden;
+}
+
+.brand-logo {
+  display: block;
+  object-fit: contain;
+  background: #ffffff;
+  border: 1px solid rgba(20, 40, 60, 0.08);
+}
+
+.auth-logo {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  box-shadow: 0 14px 28px rgba(50, 180, 180, 0.22);
+}
+
+.profile-logo {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 8px;
 }
 
 .profile-brand {
@@ -232,14 +254,6 @@ button {
 
 .auth-card .brand strong {
   color: var(--text);
-}
-
-.auth-brand .brand-mark {
-  width: 56px;
-  height: 56px;
-  font-size: 13px;
-  letter-spacing: 0;
-  box-shadow: 0 14px 26px rgba(15, 118, 110, 0.28);
 }
 
 .auth-brand strong {
@@ -409,7 +423,7 @@ h1 {
   border-color: var(--accent);
   color: #fff;
   font-weight: 700;
-  box-shadow: 0 8px 18px rgba(15, 118, 110, 0.22);
+  box-shadow: 0 8px 18px rgba(50, 180, 180, 0.24);
 }
 
 .primary:hover,
@@ -423,7 +437,7 @@ h1 {
 .mini:hover,
 .mini:focus-visible {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+  box-shadow: 0 0 0 3px rgba(50, 180, 180, 0.14);
   outline: none;
 }
 

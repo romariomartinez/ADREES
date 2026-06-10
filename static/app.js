@@ -262,7 +262,7 @@ function showApp() {
   appShell.hidden = false;
   currentUserLabel.textContent = currentUser ? currentUser.displayName : "Sin usuario";
   currentRoleLabel.textContent = currentUser ? roleLabel(currentUser.role) : "Perfil activo";
-  profileMenuButton.textContent = currentUser?.displayName ? currentUser.displayName.slice(0, 1).toUpperCase() : "A";
+  profileMenuButton.innerHTML = '<img class="brand-logo profile-logo" src="/static/assets/hospital-logo.png" alt="">';
   document.querySelector("#admin-button").hidden = !currentUser?.isSuperAdmin;
 }
 
