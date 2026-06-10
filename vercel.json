@@ -9,10 +9,5 @@
       "source": "/api/:path*",
       "destination": "/api/index"
     }
-  ],
-  "functions": {
-    "api/**/*.py": {
-      "includeFiles": "{data/**,templates/**}"
-    }
-  }
+  ]
 }

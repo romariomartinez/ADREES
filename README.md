@@ -87,7 +87,6 @@ El archivo `vercel.json` configura:
 
 - `/` para abrir `static/index.html`.
 - `/api/...` para ejecutar la funcion Python `api/index.py`.
-- inclusion de `data/` y `templates/` en la funcion, porque se necesitan para validar campos y exportar Excel.
 
 Con Supabase no necesitas disco persistente en Vercel para usuarios, historial ni borradores. Las copias locales de Excel generadas en `exports/` se desactivan automaticamente en Vercel; el archivo que descarga el usuario se genera en memoria en cada exportacion.
 
