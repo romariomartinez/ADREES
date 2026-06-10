@@ -198,6 +198,12 @@ function bindChrome() {
 
   document.querySelector("#history-button").addEventListener("click", () => {
     hideMessage();
+    if (!currentUser?.isSuperAdmin) {
+      activeView = "form";
+      showMessage("Solo el super admin puede ver el historial.", "error");
+      render();
+      return;
+    }
     if (activeView === "history") {
       activeView = "form";
       render();
@@ -278,6 +284,7 @@ function showApp() {
   currentRoleLabel.textContent = currentUser ? roleLabel(currentUser.role) : "Perfil activo";
   profileMenuButton.textContent = userInitial(currentUser);
   document.querySelector("#admin-button").hidden = !currentUser?.isSuperAdmin;
+  document.querySelector("#history-button").hidden = !currentUser?.isSuperAdmin;
 }
 
 function userInitial(user) {
@@ -336,6 +343,8 @@ function saveState() {
 
 function render() {
   if (!schema) return;
+  if (activeView === "history" && !currentUser?.isSuperAdmin) activeView = "form";
+  if (activeView === "admin" && !currentUser?.isSuperAdmin) activeView = "form";
   if (activeView === "history") {
     renderHistory();
     return;
@@ -368,7 +377,9 @@ function setFormActions(mode) {
   document.querySelector("#save-draft-button").hidden = !inForm;
   document.querySelector("#clear-form").hidden = !inForm;
   document.querySelector("#export-form").hidden = !inForm;
-  setButtonContent(document.querySelector("#history-button"), "history", mode === "history" ? "Volver" : "Historial");
+  const historyButton = document.querySelector("#history-button");
+  historyButton.hidden = !currentUser?.isSuperAdmin;
+  setButtonContent(historyButton, "history", mode === "history" ? "Volver" : "Historial");
   setButtonContent(document.querySelector("#drafts-button"), "drafts", mode === "drafts" ? "Volver" : "Borradores");
   const adminButton = document.querySelector("#admin-button");
   adminButton.hidden = !currentUser?.isSuperAdmin;
@@ -376,6 +387,12 @@ function setFormActions(mode) {
 }
 
 async function renderHistory() {
+  if (!currentUser?.isSuperAdmin) {
+    activeView = "form";
+    showMessage("Solo el super admin puede ver el historial.", "error");
+    render();
+    return;
+  }
   activeView = "history";
   setFormActions("history");
   title.textContent = "Historial de facturas";
@@ -412,7 +429,7 @@ async function renderHistory() {
     </form>
   `;
   const results = document.createElement("div");
-  results.className = "content";
+  results.className = "content history-results";
   content.append(filters, results);
   applyStaticIcons(filters);
 
@@ -473,6 +490,7 @@ function buildHistoryTable(records) {
         <th>Factura</th>
         <th>Plantilla</th>
         <th>Filas</th>
+        <th>Acciones</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -486,11 +504,41 @@ function buildHistoryTable(records) {
       <td>${escapeHtml(record.invoiceNumber)}</td>
       <td>${escapeHtml(record.filename)}</td>
       <td>${escapeHtml(record.rowCount)}</td>
+      <td>
+        <button class="mini danger-mini" data-icon="trash" type="button" data-delete-history="${record.id}" data-history-label="${escapeAttr(record.invoiceNumber || record.filename)}">Eliminar</button>
+      </td>
     `;
     body.append(row);
   });
+  applyStaticIcons(table);
+  table.querySelectorAll("[data-delete-history]").forEach((button) => {
+    button.addEventListener("click", () => deleteHistoryRecord(Number(button.dataset.deleteHistory), button.dataset.historyLabel));
+  });
   wrapper.append(table);
   return wrapper;
+}
+
+async function deleteHistoryRecord(recordId, label) {
+  if (!currentUser?.isSuperAdmin) {
+    showMessage("Solo el super admin puede eliminar historial.", "error");
+    return;
+  }
+  const detail = clean(label) || "este registro";
+  if (!window.confirm(`Eliminar del historial ${detail}?`)) return;
+  try {
+    const response = await fetch(`/api/history/${recordId}`, { method: "DELETE" });
+    const data = await readJsonResponse(response);
+    if (!response.ok) throw new Error(data.errors?.[0]?.message || "No se pudo eliminar el registro.");
+    showMessage("Registro eliminado del historial.", "ok");
+    const results = document.querySelector(".history-results");
+    if (results) {
+      await loadHistoryResults(results);
+    } else {
+      await renderHistory();
+    }
+  } catch (err) {
+    showMessage(err.message, "error");
+  }
 }
 
 async function renderDrafts() {

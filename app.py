@@ -679,6 +679,36 @@ def list_history(filters: dict | None = None, limit: int = 200) -> list[dict]:
     return [history_record(row) for row in rows]
 
 
+def delete_history_record(record_id: int) -> tuple[dict | None, str | None]:
+    with db_connect() as conn:
+        row = conn.execute(
+            """
+            SELECT r.id, r.template_id, r.invoice_number, r.filename, r.row_count, r.created_at,
+                   u.username, u.display_name
+            FROM invoice_records r
+            JOIN users u ON u.id = r.user_id
+            WHERE r.id = ?
+            """,
+            (record_id,),
+        ).fetchone()
+        if not row:
+            return None, "Registro de historial no encontrado."
+
+        conn.execute("DELETE FROM invoice_records WHERE id = ?", (record_id,))
+        remaining = conn.execute(
+            "SELECT COUNT(*) AS total FROM invoice_records WHERE filename = ?",
+            (row["filename"],),
+        ).fetchone()
+
+    if SAVE_EXPORT_COPY_ENABLED and int(remaining["total"] or 0) == 0:
+        export_path = (EXPORT_DIR / row["filename"]).resolve()
+        export_root = EXPORT_DIR.resolve()
+        if str(export_path).startswith(str(export_root)) and export_path.exists():
+            export_path.unlink()
+
+    return history_record(row), None
+
+
 def draft_record(row: dict | sqlite3.Row) -> dict:
     return {
         "id": row["id"],
@@ -1285,7 +1315,7 @@ class AppHandler(BaseHTTPRequestHandler):
             self.send_json({"user": self.current_user(), "setupRequired": user_count() == 0})
             return
         if path == "/api/history":
-            if not self.require_user():
+            if not self.require_super_admin():
                 return
             self.send_json({"records": list_history(query)})
             return
@@ -1422,9 +1452,25 @@ class AppHandler(BaseHTTPRequestHandler):
 
     def route_DELETE(self):
         path = unquote(urlparse(self.path).path)
+        if path.startswith("/api/history/"):
+            if not self.require_super_admin():
+                return
+            try:
+                record_id = int(path.removeprefix("/api/history/"))
+            except ValueError:
+                self.send_json({"ok": False, "errors": [{"message": "Registro no reconocido."}]}, status=404)
+                return
+            record, error = delete_history_record(record_id)
+            if error:
+                self.send_json({"ok": False, "errors": [{"message": error}]}, status=404)
+                return
+            self.send_json({"ok": True, "record": record})
+            return
+
         if not path.startswith("/api/drafts/"):
             self.send_error(404)
             return
+
         user = self.require_user()
         if not user:
             return
