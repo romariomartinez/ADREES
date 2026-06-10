@@ -141,6 +141,11 @@ def validate_database_url():
             "En Vercel no uses la conexion directa de Supabase db.[proyecto].supabase.co:5432. "
             "Usa la cadena Transaction pooler de Supabase, normalmente aws-[region].pooler.supabase.com:6543."
         )
+    if IS_VERCEL and "pooler.supabase.com:6543" in DATABASE_URL and re.search(r"^postgresql://postgres:", DATABASE_URL):
+        raise RuntimeError(
+            "La URL del Transaction pooler de Supabase debe usar usuario postgres.PROJECT_REF, no solo postgres. "
+            "En este proyecto debe empezar parecido a postgresql://postgres.ixrdhxqoqkdoayzrahtb:TU_CLAVE@aws-...pooler.supabase.com:6543/postgres?sslmode=require."
+        )
 
 
 def db_sql(sql: str) -> str:
