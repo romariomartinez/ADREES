@@ -133,6 +133,14 @@ def get_openpyxl():
     return openpyxl
 
 
+def validate_database_url():
+    if IS_VERCEL and re.search(r"@db\.[^/:]+\.supabase\.co:5432\b", DATABASE_URL):
+        raise RuntimeError(
+            "En Vercel no uses la conexion directa de Supabase db.[proyecto].supabase.co:5432. "
+            "Usa la cadena Transaction pooler de Supabase, normalmente aws-[region].pooler.supabase.com:6543."
+        )
+
+
 def db_sql(sql: str) -> str:
     if USE_POSTGRES:
         return sql.replace("?", "%s")
@@ -173,6 +181,7 @@ def db_connect() -> DatabaseConnection:
         ensure_db()
 
     if USE_POSTGRES:
+        validate_database_url()
         if psycopg is None:
             raise RuntimeError(
                 "Falta la dependencia psycopg para conectar con Supabase/Postgres. "
