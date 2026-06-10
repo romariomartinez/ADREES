@@ -262,8 +262,13 @@ function showApp() {
   appShell.hidden = false;
   currentUserLabel.textContent = currentUser ? currentUser.displayName : "Sin usuario";
   currentRoleLabel.textContent = currentUser ? roleLabel(currentUser.role) : "Perfil activo";
-  profileMenuButton.innerHTML = '<img class="brand-logo profile-logo" src="/static/assets/hospital-logo.png" alt="">';
+  profileMenuButton.textContent = userInitial(currentUser);
   document.querySelector("#admin-button").hidden = !currentUser?.isSuperAdmin;
+}
+
+function userInitial(user) {
+  const name = clean(user?.displayName || user?.username);
+  return name ? name.slice(0, 1).toUpperCase() : "A";
 }
 
 async function submitAuth() {
