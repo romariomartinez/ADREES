@@ -1519,6 +1519,8 @@ class AppHandler(BaseHTTPRequestHandler):
 
 
 handler = AppHandler
+app = AppHandler
+application = AppHandler
 
 
 def main():

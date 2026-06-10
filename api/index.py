@@ -55,3 +55,6 @@ if AppHandler is not None:
         if name.startswith("__") or name == "handle_one_request":
             continue
         setattr(handler, name, value)
+
+app = handler
+application = handler
