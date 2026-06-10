@@ -12,7 +12,9 @@ import sqlite3
 import importlib
 from copy import deepcopy
 from datetime import datetime
+from http import HTTPStatus
 from http.cookies import SimpleCookie
+from email.message import Message
 from io import BytesIO
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
@@ -1518,9 +1520,80 @@ class AppHandler(BaseHTTPRequestHandler):
         self.send_auth_json({"ok": True, "user": user}, session_id=session_id)
 
 
-handler = AppHandler
-app = AppHandler
-application = AppHandler
+class WsgiAppHandler(AppHandler):
+    def __init__(self, environ: dict, body: bytes):
+        self.environ = environ
+        self.command = environ.get("REQUEST_METHOD", "GET").upper()
+        path = environ.get("PATH_INFO") or "/"
+        query = environ.get("QUERY_STRING") or ""
+        self.path = f"{path}?{query}" if query else path
+        self.request_version = environ.get("SERVER_PROTOCOL", "HTTP/1.1")
+        self.client_address = (environ.get("REMOTE_ADDR", ""), 0)
+        self.server = None
+        self.rfile = BytesIO(body)
+        self.wfile = BytesIO()
+        self.headers = self.make_headers(environ)
+        self.status_code = 200
+        self.response_headers: list[tuple[str, str]] = []
+
+    @staticmethod
+    def make_headers(environ: dict) -> Message:
+        headers = Message()
+        for key, value in environ.items():
+            if key.startswith("HTTP_"):
+                name = key.removeprefix("HTTP_").replace("_", "-").title()
+                headers[name] = value
+        if environ.get("CONTENT_TYPE"):
+            headers["Content-Type"] = environ["CONTENT_TYPE"]
+        if environ.get("CONTENT_LENGTH"):
+            headers["Content-Length"] = environ["CONTENT_LENGTH"]
+        return headers
+
+    def send_response(self, code, message=None):
+        self.status_code = int(code)
+
+    def send_header(self, keyword, value):
+        self.response_headers.append((keyword, str(value)))
+
+    def end_headers(self):
+        return
+
+    def send_error(self, code, message=None, explain=None):
+        self.send_json(
+            {"ok": False, "errors": [{"message": message or HTTPStatus(code).phrase}]},
+            status=code,
+        )
+
+    def run(self):
+        try:
+            if self.command == "GET":
+                self.route_GET()
+            elif self.command == "POST":
+                self.route_POST()
+            elif self.command == "DELETE":
+                self.route_DELETE()
+            else:
+                self.send_error(405, "Metodo no permitido.")
+        except Exception as exc:
+            self.send_server_error(exc)
+        return self.status_code, self.response_headers, self.wfile.getvalue()
+
+
+def application(environ, start_response):
+    try:
+        length = int(environ.get("CONTENT_LENGTH") or 0)
+    except ValueError:
+        length = 0
+    body = environ["wsgi.input"].read(length) if length else b""
+    handler = WsgiAppHandler(environ, body)
+    status_code, headers, data = handler.run()
+    phrase = HTTPStatus(status_code).phrase if status_code in HTTPStatus._value2member_map_ else "OK"
+    start_response(f"{status_code} {phrase}", headers)
+    return [data]
+
+
+app = application
+handler = application
 
 
 def main():
