@@ -1,5 +1,6 @@
 from pathlib import Path
 import sys
+from http.server import BaseHTTPRequestHandler
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -8,5 +9,5 @@ if str(ROOT) not in sys.path:
 from app import AppHandler
 
 
-class handler(AppHandler):
+class handler(AppHandler, BaseHTTPRequestHandler):
     pass

@@ -76,7 +76,7 @@ Supabase guarda usuarios, sesiones, borradores, historial, registros de facturas
 Pasos generales:
 
 1. Crea un proyecto en Supabase.
-2. En Supabase, copia la cadena de conexion Postgres, agrega `?sslmode=require` si no lo trae y guardala.
+2. En Supabase, copia la cadena `Transaction pooler`, agrega `?sslmode=require` si no lo trae y guardala.
 3. Sube este proyecto a un repositorio GitHub privado.
 4. En Vercel, crea un proyecto desde ese repositorio.
 5. En Vercel, agrega la variable de entorno `DATABASE_URL`.
@@ -89,6 +89,16 @@ El archivo `vercel.json` configura:
 - `/api/...` para ejecutar la funcion Python `api/index.py`.
 
 Con Supabase no necesitas disco persistente en Vercel para usuarios, historial ni borradores. Las copias locales de Excel generadas en `exports/` se desactivan automaticamente en Vercel; el archivo que descarga el usuario se genera en memoria en cada exportacion.
+
+Despues de desplegar, puedes probar:
+
+```text
+https://tu-proyecto.vercel.app/api/health
+```
+
+Debe responder `{"ok": true, ...}`. Si responde error, revisa que `DATABASE_URL` exista en Vercel y tenga `?sslmode=require`.
+
+Para Vercel evita la cadena directa `db.[proyecto].supabase.co:5432`. En Supabase usa `Connect` -> `Transaction pooler`, que normalmente usa host `aws-[region].pooler.supabase.com` y puerto `6543`.
 
 ## Estructura
 

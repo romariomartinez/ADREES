@@ -60,6 +60,8 @@ else:
 DB_INTEGRITY_ERRORS = (sqlite3.IntegrityError,)
 if psycopg is not None:
     DB_INTEGRITY_ERRORS = (sqlite3.IntegrityError, psycopg.IntegrityError)
+DB_READY = False
+DB_BOOTSTRAPPING = False
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 TIME_RE = re.compile(r"^(?:[01]\d|2[0-3]):[0-5]\d$")
 DIGITS_RE = re.compile(r"^\d+$")
@@ -113,6 +115,13 @@ def now_iso() -> str:
     return datetime.now().isoformat(timespec="seconds")
 
 
+def safe_error_text(exc: Exception) -> str:
+    text = str(exc) or exc.__class__.__name__
+    if DATABASE_URL:
+        text = text.replace(DATABASE_URL, "[DATABASE_URL]")
+    return re.sub(r"(postgres(?:ql)?://[^:\s]+:)[^@\s]+@", r"\1***@", text)
+
+
 def db_sql(sql: str) -> str:
     if USE_POSTGRES:
         return sql.replace("?", "%s")
@@ -149,9 +158,12 @@ class DatabaseConnection:
 
 
 def db_connect() -> DatabaseConnection:
+    if not DB_BOOTSTRAPPING:
+        ensure_db()
+
     if USE_POSTGRES:
         if psycopg is None:
-            raise SystemExit(
+            raise RuntimeError(
                 "Falta la dependencia psycopg para conectar con Supabase/Postgres. "
                 "Instala con: python -m pip install -r requirements.txt"
             )
@@ -162,6 +174,18 @@ def db_connect() -> DatabaseConnection:
     conn = sqlite3.connect(DB_PATH, timeout=30)
     conn.row_factory = sqlite3.Row
     return DatabaseConnection(conn)
+
+
+def ensure_db():
+    global DB_READY, DB_BOOTSTRAPPING
+    if DB_READY or DB_BOOTSTRAPPING:
+        return
+    DB_BOOTSTRAPPING = True
+    try:
+        init_db()
+        DB_READY = True
+    finally:
+        DB_BOOTSTRAPPING = False
 
 
 def table_columns(conn: DatabaseConnection, table_name: str) -> set[str]:
@@ -283,10 +307,6 @@ def init_db():
             )
             """
         )
-
-
-init_db()
-
 
 def hash_password(password: str, salt: bytes | None = None) -> tuple[str, str]:
     salt = salt or secrets.token_bytes(16)
@@ -1086,6 +1106,30 @@ class AppHandler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
         print("[%s] %s" % (self.log_date_time_string(), fmt % args))
 
+    def handle_one_request(self):
+        try:
+            super().handle_one_request()
+        except Exception as exc:
+            print(f"Error en la peticion: {exc.__class__.__name__}: {safe_error_text(exc)}")
+            try:
+                self.send_json(
+                    {
+                        "ok": False,
+                        "errors": [
+                            {
+                                "message": (
+                                    "La funcion inicio, pero hubo un error interno. "
+                                    "Revisa DATABASE_URL en Vercel y los logs del despliegue."
+                                ),
+                                "detail": f"{exc.__class__.__name__}: {safe_error_text(exc)}",
+                            }
+                        ],
+                    },
+                    status=500,
+                )
+            except Exception:
+                raise
+
     def send_json(self, payload: dict, status: int = 200):
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
@@ -1171,6 +1215,16 @@ class AppHandler(BaseHTTPRequestHandler):
             return
         if path == "/api/divipola":
             self.send_json({"items": DIVIPOLA_ITEMS})
+            return
+        if path == "/api/health":
+            ensure_db()
+            self.send_json(
+                {
+                    "ok": True,
+                    "database": "postgres" if USE_POSTGRES else "sqlite",
+                    "databaseUrlConfigured": bool(DATABASE_URL),
+                }
+            )
             return
         if path == "/api/session":
             self.send_json({"user": self.current_user(), "setupRequired": user_count() == 0})
