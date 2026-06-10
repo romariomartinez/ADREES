@@ -1110,25 +1110,25 @@ class AppHandler(BaseHTTPRequestHandler):
         try:
             super().handle_one_request()
         except Exception as exc:
-            print(f"Error en la peticion: {exc.__class__.__name__}: {safe_error_text(exc)}")
-            try:
-                self.send_json(
+            self.send_server_error(exc)
+
+    def send_server_error(self, exc: Exception):
+        print(f"Error en la peticion: {exc.__class__.__name__}: {safe_error_text(exc)}")
+        self.send_json(
+            {
+                "ok": False,
+                "errors": [
                     {
-                        "ok": False,
-                        "errors": [
-                            {
-                                "message": (
-                                    "La funcion inicio, pero hubo un error interno. "
-                                    "Revisa DATABASE_URL en Vercel y los logs del despliegue."
-                                ),
-                                "detail": f"{exc.__class__.__name__}: {safe_error_text(exc)}",
-                            }
-                        ],
-                    },
-                    status=500,
-                )
-            except Exception:
-                raise
+                        "message": (
+                            "La funcion inicio, pero hubo un error interno. "
+                            "Revisa DATABASE_URL en Vercel y los logs del despliegue."
+                        ),
+                        "detail": f"{exc.__class__.__name__}: {safe_error_text(exc)}",
+                    }
+                ],
+            },
+            status=500,
+        )
 
     def send_json(self, payload: dict, status: int = 200):
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -1204,6 +1204,12 @@ class AppHandler(BaseHTTPRequestHandler):
         return user
 
     def do_GET(self):
+        try:
+            self.route_GET()
+        except Exception as exc:
+            self.send_server_error(exc)
+
+    def route_GET(self):
         parsed = urlparse(self.path)
         path = unquote(parsed.path)
         query = {key: values[0] for key, values in parse_qs(parsed.query).items() if values}
@@ -1294,6 +1300,12 @@ class AppHandler(BaseHTTPRequestHandler):
         self.send_error(404)
 
     def do_POST(self):
+        try:
+            self.route_POST()
+        except Exception as exc:
+            self.send_server_error(exc)
+
+    def route_POST(self):
         path = unquote(urlparse(self.path).path)
         if path in {"/api/login", "/api/register", "/api/logout"}:
             self.handle_auth(path)
@@ -1373,6 +1385,12 @@ class AppHandler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def do_DELETE(self):
+        try:
+            self.route_DELETE()
+        except Exception as exc:
+            self.send_server_error(exc)
+
+    def route_DELETE(self):
         path = unquote(urlparse(self.path).path)
         if not path.startswith("/api/drafts/"):
             self.send_error(404)

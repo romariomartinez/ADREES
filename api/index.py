@@ -9,5 +9,10 @@ if str(ROOT) not in sys.path:
 from app import AppHandler
 
 
-class handler(AppHandler, BaseHTTPRequestHandler):
+class handler(BaseHTTPRequestHandler):
     pass
+
+
+for name, value in AppHandler.__dict__.items():
+    if not name.startswith("__"):
+        setattr(handler, name, value)

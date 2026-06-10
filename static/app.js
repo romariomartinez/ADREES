@@ -77,31 +77,39 @@ document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
   restoreState();
-  const [schemaResponse, sessionResponse, divipolaResponse] = await Promise.all([
-    fetch("/api/schema"),
-    fetch("/api/session"),
-    fetch("/api/divipola")
-  ]);
-  schema = await readJsonResponse(schemaResponse);
-  const session = await readJsonResponse(sessionResponse);
-  const divipola = await readJsonResponse(divipolaResponse);
-  divipolaItems = (divipola.items || []).map((item) => ({
-    ...item,
-    searchText: normalizeSearch(`${item.code} ${item.municipality} ${item.department} ${item.departmentCode} ${item.label}`)
-  }));
-  divipolaCodes = new Set(divipolaItems.map((item) => item.code));
-  currentUser = session.user;
-  setupRequired = Boolean(session.setupRequired);
-  authMode = setupRequired ? "setup" : "login";
-  bindAuth();
-  bindChrome();
-  applyStaticIcons();
-  normalizeAll();
-  if (currentUser) {
-    showApp();
-    render();
-  } else {
+  try {
+    const [schemaResponse, sessionResponse, divipolaResponse] = await Promise.all([
+      fetch("/api/schema"),
+      fetch("/api/session"),
+      fetch("/api/divipola")
+    ]);
+    schema = await readJsonResponse(schemaResponse, { throwOnError: true });
+    const session = await readJsonResponse(sessionResponse, { throwOnError: true });
+    const divipola = await readJsonResponse(divipolaResponse, { throwOnError: true });
+    divipolaItems = (divipola.items || []).map((item) => ({
+      ...item,
+      searchText: normalizeSearch(`${item.code} ${item.municipality} ${item.department} ${item.departmentCode} ${item.label}`)
+    }));
+    divipolaCodes = new Set(divipolaItems.map((item) => item.code));
+    currentUser = session.user;
+    setupRequired = Boolean(session.setupRequired);
+    authMode = setupRequired ? "setup" : "login";
+    bindAuth();
+    bindChrome();
+    applyStaticIcons();
+    normalizeAll();
+    if (currentUser) {
+      showApp();
+      render();
+    } else {
+      showAuth();
+    }
+  } catch (error) {
+    console.error(error);
     showAuth();
+    authMessage.textContent = error.message;
+    authMessage.className = "auth-message error";
+    authMessage.hidden = false;
   }
 }
 
@@ -1495,17 +1503,29 @@ function hideMessage() {
   message.className = "message";
 }
 
-async function readJsonResponse(response) {
+async function readJsonResponse(response, options = {}) {
   const text = await response.text();
-  if (!text) return {};
+  if (!text) {
+    if (!response.ok && options.throwOnError) {
+      throw new Error(`El servidor respondio ${response.status}, pero no envio detalles.`);
+    }
+    return {};
+  }
+  let data = null;
   try {
-    return JSON.parse(text);
+    data = JSON.parse(text);
   } catch {
     if (text.trim().startsWith("<!DOCTYPE") || text.trim().startsWith("<html")) {
-      throw new Error("El servidor devolvio una pagina en vez de datos. Reinicia la app con .\\run.ps1 y recarga con Ctrl + F5.");
+      throw new Error(`El servidor devolvio una pagina de error (${response.status}). Revisa los logs del despliegue en Vercel.`);
     }
-    throw new Error("El servidor devolvio una respuesta que la app no pudo leer.");
+    const preview = text.trim().slice(0, 180);
+    throw new Error(`El servidor devolvio una respuesta que la app no pudo leer (${response.status}). ${preview}`);
   }
+  if (!response.ok && options.throwOnError) {
+    const serverMessage = data.errors?.[0]?.detail || data.errors?.[0]?.message || `Error ${response.status}`;
+    throw new Error(serverMessage);
+  }
+  return data;
 }
 
 function clean(value) {
