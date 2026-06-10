@@ -7,11 +7,11 @@
     },
     {
       "source": "/api/:path*",
-      "destination": "/api/index.py"
+      "destination": "/api/index"
     }
   ],
   "functions": {
-    "api/index.py": {
+    "api/**/*.py": {
       "includeFiles": "{data/**,templates/**}"
     }
   }
