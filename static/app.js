@@ -8,6 +8,7 @@ let divipolaItems = [];
 let divipolaCodes = new Set();
 let habilitacionItems = [];
 let habilitacionCodes = new Set();
+let pendingTabFocus = null;
 const activeDraftId = {
   fur: null,
   ser: null
@@ -156,6 +157,12 @@ function bindChrome() {
     }
   });
   document.addEventListener("keydown", (event) => {
+    if (event.key === "Tab") {
+      pendingTabFocus = nextFieldFocusSnapshot(event.target, event.shiftKey);
+      window.setTimeout(() => {
+        pendingTabFocus = null;
+      }, 250);
+    }
     if (event.key === "Escape") closeProfileMenu();
   });
 
@@ -1111,6 +1118,44 @@ function setupFrequentControl(control, list, fieldName) {
   control.addEventListener("input", load);
 }
 
+function isFocusableField(control) {
+  return Boolean(control?.dataset?.field && !control.disabled && !control.readOnly && control.offsetParent !== null);
+}
+
+function fieldFocusSnapshot(control) {
+  if (!isFocusableField(control)) return null;
+  return {
+    template: control.dataset.template,
+    row: control.dataset.row,
+    field: control.dataset.field
+  };
+}
+
+function nextFieldFocusSnapshot(current, backwards = false) {
+  if (!current?.dataset?.field) return null;
+  const controls = Array.from(content.querySelectorAll("[data-field][data-row][data-template]")).filter(isFocusableField);
+  const index = controls.indexOf(current);
+  if (index === -1) return null;
+  const next = controls[index + (backwards ? -1 : 1)];
+  return fieldFocusSnapshot(next);
+}
+
+function restoreFieldFocus(snapshot) {
+  if (!snapshot) return false;
+  const target = Array.from(document.querySelectorAll("[data-field][data-row][data-template]")).find((control) => (
+    control.dataset.template === snapshot.template
+    && control.dataset.row === snapshot.row
+    && control.dataset.field === snapshot.field
+  ));
+  if (!target || target.disabled || target.offsetParent === null) return false;
+  target.focus({ preventScroll: true });
+  if (typeof target.setSelectionRange === "function") {
+    const end = target.value?.length || 0;
+    target.setSelectionRange(end, end);
+  }
+  return true;
+}
+
 function buildControl(field, value) {
   let control;
   if (DIVIPOLA_FIELD_NAMES.has(field.name)) {
@@ -1148,6 +1193,9 @@ function buildControl(field, value) {
     control.maxLength = field.maxLength;
   }
   if (field.readonly) control.readOnly = true;
+  control.addEventListener("keydown", (event) => {
+    if (event.key === "Tab") pendingTabFocus = nextFieldFocusSnapshot(control, event.shiftKey);
+  });
   return control;
 }
 
@@ -1237,9 +1285,10 @@ function normalizeDivipolaValue(value) {
 
 function onDivipolaBlur(event) {
   const control = event.currentTarget;
+  const focusTarget = fieldFocusSnapshot(event.relatedTarget) || pendingTabFocus;
   window.setTimeout(() => {
     control.value = normalizeDivipolaValue(control.value);
-    onControlCommit({ currentTarget: control });
+    commitControl(control, focusTarget);
   }, 120);
 }
 
@@ -1330,9 +1379,10 @@ function normalizeHabilitacionValue(value) {
 
 function onHabilitacionBlur(event) {
   const control = event.currentTarget;
+  const focusTarget = fieldFocusSnapshot(event.relatedTarget) || pendingTabFocus;
   window.setTimeout(() => {
     control.value = normalizeHabilitacionValue(control.value);
-    onControlCommit({ currentTarget: control });
+    commitControl(control, focusTarget);
   }, 120);
 }
 
@@ -1345,10 +1395,17 @@ function onControlInput(event) {
 
 function onControlCommit(event) {
   const control = event.currentTarget;
+  const focusTarget = fieldFocusSnapshot(event.relatedTarget)
+    || pendingTabFocus
+    || (event.type === "change" ? fieldFocusSnapshot(document.activeElement) : null);
+  commitControl(control, focusTarget);
+}
+
+function commitControl(control, focusTarget = null) {
   updateState(control.dataset.template, Number(control.dataset.row), control.dataset.field, control.value);
   normalizeAll();
   saveState();
-  renderPreservingScroll();
+  renderPreservingScroll({ focusTarget });
 }
 
 function updateState(templateId, rowNumber, field, value) {
@@ -1359,11 +1416,12 @@ function updateState(templateId, rowNumber, field, value) {
   state.ser[rowNumber - 1][field] = clean(value);
 }
 
-function renderPreservingScroll() {
+function renderPreservingScroll(options = {}) {
   const x = window.scrollX;
   const y = window.scrollY;
   render();
   requestAnimationFrame(() => {
+    restoreFieldFocus(options.focusTarget);
     window.scrollTo(x, y);
     requestAnimationFrame(() => window.scrollTo(x, y));
   });
