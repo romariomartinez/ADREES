@@ -9,6 +9,7 @@ import os
 import re
 import secrets
 import sqlite3
+import importlib
 from copy import deepcopy
 from datetime import datetime
 from http.cookies import SimpleCookie
@@ -26,10 +27,8 @@ except ImportError:
 
 try:
     import openpyxl
-except ImportError as exc:
-    raise SystemExit(
-        "Falta la dependencia openpyxl. Instala con: python -m pip install -r requirements.txt"
-    ) from exc
+except ImportError:
+    openpyxl = None
 
 
 ROOT = Path(__file__).resolve().parent
@@ -120,6 +119,18 @@ def safe_error_text(exc: Exception) -> str:
     if DATABASE_URL:
         text = text.replace(DATABASE_URL, "[DATABASE_URL]")
     return re.sub(r"(postgres(?:ql)?://[^:\s]+:)[^@\s]+@", r"\1***@", text)
+
+
+def get_openpyxl():
+    global openpyxl
+    if openpyxl is None:
+        try:
+            openpyxl = importlib.import_module("openpyxl")
+        except ImportError as exc:
+            raise RuntimeError(
+                "Falta la dependencia openpyxl. Revisa que Vercel instale requirements.txt."
+            ) from exc
+    return openpyxl
 
 
 def db_sql(sql: str) -> str:
@@ -1071,7 +1082,7 @@ def normalize_payload_rows(template_id: str, payload: dict) -> list[dict]:
 def export_workbook(template_id: str, rows: list[dict]) -> tuple[bytes, str]:
     template = SCHEMA["templates"][template_id]
     path = TEMPLATE_DIR / template["file"]
-    workbook = openpyxl.load_workbook(path)
+    workbook = get_openpyxl().load_workbook(path)
     sheet = workbook.active
 
     headers = [sheet.cell(1, column).value for column in range(1, sheet.max_column + 1)]
