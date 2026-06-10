@@ -1518,6 +1518,9 @@ class AppHandler(BaseHTTPRequestHandler):
         self.send_auth_json({"ok": True, "user": user}, session_id=session_id)
 
 
+handler = AppHandler
+
+
 def main():
     parser = argparse.ArgumentParser(description="Asistente local para plantillas ADRES FUR.")
     parser.add_argument("--host", default="127.0.0.1")
