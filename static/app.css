@@ -61,22 +61,28 @@ button {
   display: grid;
   place-items: center;
   min-height: 100vh;
-  padding: 24px;
-  background: #edf1f4;
+  padding: 28px;
+  background:
+    linear-gradient(135deg, rgba(15, 118, 110, 0.12) 0%, rgba(49, 95, 189, 0.06) 48%, rgba(255, 255, 255, 0) 78%),
+    linear-gradient(180deg, #f8fafb 0%, #edf2f5 100%),
+    #edf2f5;
 }
 
 .auth-card {
-  width: min(420px, 100%);
+  width: min(520px, 100%);
   background: var(--panel);
   border: 1px solid var(--line);
-  border-top: 4px solid var(--accent);
+  border-top: 5px solid var(--accent);
   border-radius: 8px;
-  box-shadow: var(--shadow);
-  padding: 26px;
+  box-shadow: 0 24px 60px rgba(28, 39, 51, 0.16);
+  padding: 30px;
 }
 
 .auth-brand {
-  margin-bottom: 20px;
+  align-items: center;
+  margin-bottom: 26px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
 }
 
 .auth-field {
@@ -93,7 +99,8 @@ button {
 
 .auth-card button {
   width: 100%;
-  margin-top: 8px;
+  min-height: 44px;
+  margin-top: 9px;
 }
 
 .auth-message {
@@ -202,6 +209,13 @@ button {
   display: block;
 }
 
+.brand small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 3px;
+}
+
 .brand span {
   color: var(--muted);
   font-size: 12px;
@@ -218,6 +232,26 @@ button {
 
 .auth-card .brand strong {
   color: var(--text);
+}
+
+.auth-brand .brand-mark {
+  width: 56px;
+  height: 56px;
+  font-size: 13px;
+  letter-spacing: 0;
+  box-shadow: 0 14px 26px rgba(15, 118, 110, 0.28);
+}
+
+.auth-brand strong {
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.auth-brand span {
+  color: var(--accent-dark);
+  font-size: 13px;
+  font-weight: 760;
+  text-transform: uppercase;
 }
 
 .tabs {

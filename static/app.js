@@ -246,7 +246,7 @@ function renderAuthMode() {
   displayNameField.hidden = !setup;
   toggle.hidden = true;
   submit.textContent = setup ? "Crear super admin" : "Ingresar";
-  authSubtitle.textContent = setup ? "Configuracion inicial del super admin" : "Ingreso de facturadores";
+  authSubtitle.textContent = setup ? "Configuracion inicial del super admin" : "Ingreso al sistema de radicacion";
   document.querySelector("#auth-password").autocomplete = setup ? "new-password" : "current-password";
   authMessage.hidden = true;
 }
