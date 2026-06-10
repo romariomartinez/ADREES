@@ -472,7 +472,7 @@ h1 {
   border: 1px solid var(--line);
   border-radius: 8px;
   box-shadow: var(--shadow-soft);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .section-title {
@@ -524,6 +524,12 @@ h1 {
 
 .field {
   min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.field:focus-within {
+  z-index: 1200;
 }
 
 .field-label {
@@ -551,6 +557,7 @@ h1 {
 
 .divipola-control {
   position: relative;
+  z-index: 10;
 }
 
 input,
@@ -586,7 +593,7 @@ textarea:focus {
 
 .divipola-results {
   position: absolute;
-  z-index: 30;
+  z-index: 1300;
   top: calc(100% + 5px);
   left: 0;
   right: 0;
@@ -684,7 +691,7 @@ textarea:focus {
   border: 1px solid var(--line);
   border-radius: 8px;
   box-shadow: var(--shadow-soft);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .service-row-head {
