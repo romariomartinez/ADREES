@@ -49,6 +49,7 @@ DATA_DIR = Path(
 )
 SCHEMA_PATH = ROOT / "data" / "schema.json"
 DIVIPOLA_PATH = ROOT / "data" / "divipola.json"
+HABILITACIONES_PATH = ROOT / "data" / "habilitaciones.json"
 STATIC_DIR = ROOT / "static"
 TEMPLATE_DIR = ROOT / "templates"
 EXPORT_DIR = Path(os.environ.get("ADRES_EXPORT_DIR", DATA_DIR / "exports"))
@@ -76,6 +77,11 @@ DIVIPOLA_FIELD_NAMES = {
     "Codigo_municipio_ocurrencia_evento",
     "Codigo_del_municipio_de_residencia_del_propietario",
     "Codigo_del_municipio_de_residencia_del_conductor",
+}
+HABILITACION_FIELD_NAMES = {
+    "Codigo_de_habilitacion_del_prestador_que_remite",
+    "Codigo_de_habilitacion_del_prestador_que_recibe",
+    "Codigo_de_habilitacion_del_prestador_que_recibe_transporte_primario",
 }
 FREQUENT_FIELD_NAMES = {
     "NIT_PRESTADOR",
@@ -107,9 +113,19 @@ def load_divipola() -> list[dict]:
     return sorted(items, key=lambda item: item["code"])
 
 
+def load_habilitaciones() -> list[dict]:
+    if not HABILITACIONES_PATH.exists():
+        return []
+    with HABILITACIONES_PATH.open("r", encoding="utf-8") as fh:
+        items = json.load(fh)
+    return sorted(items, key=lambda item: item["code"])
+
+
 SCHEMA = load_schema()
 DIVIPOLA_ITEMS = load_divipola()
 DIVIPOLA_CODES = {item["code"] for item in DIVIPOLA_ITEMS}
+HABILITACIONES_ITEMS = load_habilitaciones()
+HABILITACIONES_CODES = {item["code"] for item in HABILITACIONES_ITEMS}
 
 
 def now_iso() -> str:
@@ -1015,6 +1031,8 @@ def validate_field(field: dict, value: str, row: dict, template_id: str, row_num
         add("Solo se permiten digitos, sin puntos, comas ni espacios.")
     if name in DIVIPOLA_FIELD_NAMES and DIVIPOLA_CODES and value not in DIVIPOLA_CODES:
         add("Seleccione un codigo DIVIPOLA valido.")
+    if name in HABILITACION_FIELD_NAMES and HABILITACIONES_CODES and value not in HABILITACIONES_CODES:
+        add("Seleccione un codigo de habilitacion valido.")
     if field_type == "amount":
         amount = as_int(value)
         min_value = field.get("minValue")
@@ -1249,6 +1267,9 @@ class AppHandler(BaseHTTPRequestHandler):
             return
         if path == "/api/divipola":
             self.send_json({"items": DIVIPOLA_ITEMS})
+            return
+        if path == "/api/habilitaciones":
+            self.send_json({"items": HABILITACIONES_ITEMS})
             return
         if path == "/api/health":
             ensure_db()

@@ -6,6 +6,8 @@ let authMode = "login";
 let setupRequired = false;
 let divipolaItems = [];
 let divipolaCodes = new Set();
+let habilitacionItems = [];
+let habilitacionCodes = new Set();
 const activeDraftId = {
   fur: null,
   ser: null
@@ -35,6 +37,11 @@ const DIVIPOLA_FIELD_NAMES = new Set([
   "Codigo_municipio_ocurrencia_evento",
   "Codigo_del_municipio_de_residencia_del_propietario",
   "Codigo_del_municipio_de_residencia_del_conductor"
+]);
+const HABILITACION_FIELD_NAMES = new Set([
+  "Codigo_de_habilitacion_del_prestador_que_remite",
+  "Codigo_de_habilitacion_del_prestador_que_recibe",
+  "Codigo_de_habilitacion_del_prestador_que_recibe_transporte_primario"
 ]);
 const FREQUENT_FIELD_NAMES = new Set([
   "NIT_PRESTADOR",
@@ -78,19 +85,26 @@ document.addEventListener("DOMContentLoaded", init);
 async function init() {
   restoreState();
   try {
-    const [schemaResponse, sessionResponse, divipolaResponse] = await Promise.all([
+    const [schemaResponse, sessionResponse, divipolaResponse, habilitacionesResponse] = await Promise.all([
       fetch("/api/schema"),
       fetch("/api/session"),
-      fetch("/api/divipola")
+      fetch("/api/divipola"),
+      fetch("/api/habilitaciones")
     ]);
     schema = await readJsonResponse(schemaResponse, { throwOnError: true });
     const session = await readJsonResponse(sessionResponse, { throwOnError: true });
     const divipola = await readJsonResponse(divipolaResponse, { throwOnError: true });
+    const habilitaciones = await readJsonResponse(habilitacionesResponse, { throwOnError: true });
     divipolaItems = (divipola.items || []).map((item) => ({
       ...item,
       searchText: normalizeSearch(`${item.code} ${item.municipality} ${item.department} ${item.departmentCode} ${item.label}`)
     }));
     divipolaCodes = new Set(divipolaItems.map((item) => item.code));
+    habilitacionItems = (habilitaciones.items || []).map((item) => ({
+      ...item,
+      searchText: normalizeSearch(`${item.code} ${item.name} ${item.department} ${item.municipality} ${item.source} ${item.label}`)
+    }));
+    habilitacionCodes = new Set(habilitacionItems.map((item) => item.code));
     currentUser = session.user;
     setupRequired = Boolean(session.setupRequired);
     authMode = setupRequired ? "setup" : "login";
@@ -994,6 +1008,8 @@ function renderField(field, row, rowNumber, templateId) {
   controlWrap.append(control);
   if (DIVIPOLA_FIELD_NAMES.has(field.name) && control.tagName === "INPUT") {
     setupDivipolaControl(control, controlWrap);
+  } else if (HABILITACION_FIELD_NAMES.has(field.name) && control.tagName === "INPUT") {
+    setupHabilitacionControl(control, controlWrap);
   } else if (FREQUENT_FIELD_NAMES.has(field.name) && control.tagName === "INPUT") {
     const list = document.createElement("datalist");
     list.id = `list-${templateId}-${rowNumber}-${field.name}`;
@@ -1051,6 +1067,8 @@ function buildControl(field, value) {
   let control;
   if (DIVIPOLA_FIELD_NAMES.has(field.name)) {
     control = buildDivipolaInput(value);
+  } else if (HABILITACION_FIELD_NAMES.has(field.name)) {
+    control = buildHabilitacionInput(value);
   } else if (field.type === "select") {
     control = document.createElement("select");
     const blank = document.createElement("option");
@@ -1075,8 +1093,12 @@ function buildControl(field, value) {
     control.addEventListener("input", onControlInput);
     control.addEventListener("blur", onControlCommit);
   }
-  control.value = value;
-  if (field.maxLength && !DIVIPOLA_FIELD_NAMES.has(field.name)) control.maxLength = field.maxLength;
+  if (!DIVIPOLA_FIELD_NAMES.has(field.name) && !HABILITACION_FIELD_NAMES.has(field.name)) {
+    control.value = value;
+  }
+  if (field.maxLength && !DIVIPOLA_FIELD_NAMES.has(field.name) && !HABILITACION_FIELD_NAMES.has(field.name)) {
+    control.maxLength = field.maxLength;
+  }
   if (field.readonly) control.readOnly = true;
   return control;
 }
@@ -1173,6 +1195,99 @@ function onDivipolaBlur(event) {
   }, 120);
 }
 
+function buildHabilitacionInput(value) {
+  const control = document.createElement("input");
+  control.type = "text";
+  control.inputMode = "search";
+  control.autocomplete = "off";
+  control.className = "divipola-input habilitacion-input";
+  control.placeholder = "Buscar IPS, prestador o codigo";
+  control.addEventListener("input", onControlInput);
+  control.addEventListener("blur", onHabilitacionBlur);
+  control.value = normalizeHabilitacionValue(value) || value;
+  return control;
+}
+
+function setupHabilitacionControl(control, controlWrap) {
+  controlWrap.classList.add("divipola-control");
+  const panel = document.createElement("div");
+  panel.className = "divipola-results habilitacion-results";
+  panel.hidden = true;
+  controlWrap.append(panel);
+
+  const hide = () => {
+    panel.hidden = true;
+    panel.replaceChildren();
+  };
+
+  const choose = (item) => {
+    control.value = item.code;
+    updateState(control.dataset.template, Number(control.dataset.row), control.dataset.field, item.code);
+    normalizeAll();
+    saveState();
+    hide();
+    renderPreservingScroll();
+  };
+
+  const renderResults = () => {
+    const query = clean(control.value);
+    const matches = filterHabilitacion(query);
+    panel.replaceChildren();
+    if (!matches.length) {
+      const empty = document.createElement("div");
+      empty.className = "divipola-empty";
+      empty.textContent = query ? "Sin resultados de habilitacion" : "Escribe para buscar";
+      panel.append(empty);
+      panel.hidden = false;
+      return;
+    }
+    matches.forEach((item) => {
+      const button = document.createElement("button");
+      const location = [item.municipality, item.department, item.source].filter(Boolean).join(" - ");
+      button.type = "button";
+      button.className = "divipola-option habilitacion-option";
+      button.innerHTML = `
+        <strong>${escapeHtml(item.code)} - ${escapeHtml(item.name || "IPS sin nombre")}</strong>
+        <span>${escapeHtml(location)}</span>
+      `;
+      button.addEventListener("mousedown", (event) => event.preventDefault());
+      button.addEventListener("click", () => choose(item));
+      panel.append(button);
+    });
+    panel.hidden = false;
+  };
+
+  control.addEventListener("focus", renderResults);
+  control.addEventListener("input", renderResults);
+}
+
+function filterHabilitacion(query) {
+  const term = normalizeSearch(query);
+  const source = term
+    ? habilitacionItems.filter((item) => item.searchText.includes(term))
+    : habilitacionItems;
+  return source.slice(0, 40);
+}
+
+function normalizeHabilitacionValue(value) {
+  const text = clean(value);
+  if (!text) return "";
+  if (habilitacionCodes.has(text)) return text;
+  const code = text.match(/\d{12}/);
+  if (code && habilitacionCodes.has(code[0])) return code[0];
+  const normalized = normalizeSearch(text);
+  const exact = habilitacionItems.find((item) => normalizeSearch(item.label) === normalized);
+  return exact ? exact.code : text;
+}
+
+function onHabilitacionBlur(event) {
+  const control = event.currentTarget;
+  window.setTimeout(() => {
+    control.value = normalizeHabilitacionValue(control.value);
+    onControlCommit({ currentTarget: control });
+  }, 120);
+}
+
 function onControlInput(event) {
   const control = event.currentTarget;
   updateState(control.dataset.template, Number(control.dataset.row), control.dataset.field, control.value);
@@ -1263,6 +1378,9 @@ function validateActive() {
       }
       if (DIVIPOLA_FIELD_NAMES.has(field.name) && divipolaCodes.size && !divipolaCodes.has(value)) {
         list.push(error(rowNumber, field, "Seleccione un codigo DIVIPOLA valido."));
+      }
+      if (HABILITACION_FIELD_NAMES.has(field.name) && habilitacionCodes.size && !habilitacionCodes.has(value)) {
+        list.push(error(rowNumber, field, "Seleccione un codigo de habilitacion valido."));
       }
       if (field.type === "amount" && field.minValue && toInt(value) !== null && toInt(value) < field.minValue) {
         list.push(error(rowNumber, field, `Debe ser mayor o igual a ${field.minValue}.`));
