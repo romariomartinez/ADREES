@@ -1460,14 +1460,7 @@ async function exportActive() {
     if (!response.ok) {
       const data = await readJsonResponse(response);
       errors = data.errors || [];
-      if (response.status === 409 && data.duplicate) {
-        showMessage(
-          `Factura duplicada: ${data.duplicate.invoiceNumber} ya fue exportada por ${data.duplicate.displayName} el ${formatDateTime(data.duplicate.createdAt)}.`,
-          "error"
-        );
-      } else {
-        showMessage(data.errors?.[0]?.message || "El servidor encontro errores de validacion.", "error");
-      }
+      showMessage(data.errors?.[0]?.message || "El servidor encontro errores de validacion.", "error");
       render();
       return;
     }

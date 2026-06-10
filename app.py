@@ -802,6 +802,7 @@ def delete_draft(user: dict, draft_id: int) -> bool:
 
 def record_frequent_values(user: dict, rows: list[dict]):
     timestamp = now_iso()
+    use_count_increment = "frequent_values.use_count + 1" if USE_POSTGRES else "use_count + 1"
     with db_connect() as conn:
         for row in rows:
             for field_name in FREQUENT_FIELD_NAMES:
@@ -809,12 +810,12 @@ def record_frequent_values(user: dict, rows: list[dict]):
                 if not value:
                     continue
                 conn.execute(
-                    """
+                    f"""
                     INSERT INTO frequent_values (user_id, field_name, value, label, use_count, last_used_at)
                     VALUES (?, ?, ?, ?, 1, ?)
                     ON CONFLICT(user_id, field_name, value)
                     DO UPDATE SET
-                        use_count = use_count + 1,
+                        use_count = {use_count_increment},
                         label = excluded.label,
                         last_used_at = excluded.last_used_at
                     """,
@@ -1373,27 +1374,8 @@ class AppHandler(BaseHTTPRequestHandler):
             self.send_json({"ok": False, "errors": errors}, status=422)
             return
 
-        invoice_number = rows[0].get("NUM_FACTURA", "")
-        duplicate = find_duplicate_export(template_id, invoice_number)
-        if duplicate:
-            self.send_json(
-                {
-                    "ok": False,
-                    "duplicate": duplicate,
-                    "errors": [
-                        {
-                            "message": (
-                                f"La factura {invoice_number} ya fue exportada en "
-                                f"{SCHEMA['templates'][template_id]['file']} por {duplicate['displayName']}."
-                            )
-                        }
-                    ],
-                },
-                status=409,
-            )
-            return
-
         try:
+            invoice_number = rows[0].get("NUM_FACTURA", "")
             data, filename = export_workbook(template_id, rows)
             record_export(user, template_id, invoice_number, filename, len(rows))
             record_frequent_values(user, rows)

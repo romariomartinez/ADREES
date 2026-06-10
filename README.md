@@ -22,7 +22,7 @@ Desde `Usuarios`, el super admin puede editar nombre, rol, estado activo/inactiv
 - `Guardar borrador`: guarda el formulario actual aunque falten campos por completar.
 - `Borradores`: permite buscar, cargar y eliminar borradores del usuario activo.
 - `Historial`: permite buscar facturas exportadas por numero, facturador, plantilla y fechas.
-- La app bloquea exportaciones duplicadas para la misma combinacion de plantilla y numero de factura.
+- La app permite exportar facturas con el mismo numero cuando el proceso lo requiere; cada exportacion queda registrada en el historial.
 
 ## Autocompletado
 
