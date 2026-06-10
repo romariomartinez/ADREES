@@ -1,5 +1,2037 @@
 [
   {
+    "code": "200110133204",
+    "name": "APREHSI GROUP SEDE AGUACHICA",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110133204 - APREHSI GROUP SEDE AGUACHICA"
+  },
+  {
+    "code": "200110119402",
+    "name": "BIENESTAR IPS S.A.S. AGUACHICA",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110119402 - BIENESTAR IPS S.A.S. AGUACHICA"
+  },
+  {
+    "code": "200110119406",
+    "name": "BIENESTAR IPS SEDE ESPECIALISTAS AGUACHICA",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110119406 - BIENESTAR IPS SEDE ESPECIALISTAS AGUACHICA"
+  },
+  {
+    "code": "200110162501",
+    "name": "CAPELLA IPS S.A.S",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110162501 - CAPELLA IPS S.A.S"
+  },
+  {
+    "code": "200110162201",
+    "name": "CENTRO DE RECONOCIMIENTO DE CONDUCTORES A PRUEBA AGUACHICA",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110162201 - CENTRO DE RECONOCIMIENTO DE CONDUCTORES A PRUEBA AGUACHICA"
+  },
+  {
+    "code": "200110229501",
+    "name": "CENTRO DE REHABILITACION INTEGRAL SAN PIO SAS",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110229501 - CENTRO DE REHABILITACION INTEGRAL SAN PIO SAS"
+  },
+  {
+    "code": "200110012610",
+    "name": "CENTRO DE SALUD IDEMA",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "publicas",
+    "label": "200110012610 - CENTRO DE SALUD IDEMA"
+  },
+  {
+    "code": "200110012602",
+    "name": "CENTRO DE SALUD SAN EDUARDO",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "publicas",
+    "label": "200110012602 - CENTRO DE SALUD SAN EDUARDO"
+  },
+  {
+    "code": "200110289801",
+    "name": "CENTRO DE SERVICIOS INTEGRALES VIP S.A.S.",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110289801 - CENTRO DE SERVICIOS INTEGRALES VIP S.A.S."
+  },
+  {
+    "code": "200110105101",
+    "name": "Centro Integral de Apoyo Terapeutico Superar. CIATSuperar",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110105101 - Centro Integral de Apoyo Terapeutico Superar. CIATSuperar"
+  },
+  {
+    "code": "200110121401",
+    "name": "CENTRO MEDICO Y DE AYUDAS DIAGNOSTICA LTDA CEMAD LTDA",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110121401 - CENTRO MEDICO Y DE AYUDAS DIAGNOSTICA LTDA CEMAD LTDA"
+  },
+  {
+    "code": "200110278301",
+    "name": "CENTRO MEDICO Y OFTALMOLOGICO ESPECIALIZADO S.A.S ZOMAC",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110278301 - CENTRO MEDICO Y OFTALMOLOGICO ESPECIALIZADO S.A.S ZOMAC"
+  },
+  {
+    "code": "200110235701",
+    "name": "CLINICA ALTA COMPLEJIDAD DE AGUACHICA S.A.S.",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110235701 - CLINICA ALTA COMPLEJIDAD DE AGUACHICA S.A.S."
+  },
+  {
+    "code": "200110235801",
+    "name": "CLINICA ANA CURE SPA S.A.S ZOMAC",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110235801 - CLINICA ANA CURE SPA S.A.S ZOMAC"
+  },
+  {
+    "code": "200110030601",
+    "name": "CLINICA DE ESPECIALISTAS MARIA AUXILIADORA S.A.S.",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110030601 - CLINICA DE ESPECIALISTAS MARIA AUXILIADORA S.A.S."
+  },
+  {
+    "code": "200110030602",
+    "name": "CLINICA DE ESPECIALISTAS MARIA AUXILIADORA SEDE 1",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110030602 - CLINICA DE ESPECIALISTAS MARIA AUXILIADORA SEDE 1"
+  },
+  {
+    "code": "200110260301",
+    "name": "CLINICA INTEGRAL DEL SUR",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110260301 - CLINICA INTEGRAL DEL SUR"
+  },
+  {
+    "code": "200110121201",
+    "name": "CLINICA MEDICA DE AGUACHICA S.A.S.",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110121201 - CLINICA MEDICA DE AGUACHICA S.A.S."
+  },
+  {
+    "code": "200110202601",
+    "name": "CM COLOMBIA IPS",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110202601 - CM COLOMBIA IPS"
+  },
+  {
+    "code": "200110221001",
+    "name": "consultorio medico aguachica",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110221001 - consultorio medico aguachica"
+  },
+  {
+    "code": "200110058802",
+    "name": "CRUZ ROJA COLOMBIANA SECCIOAL CESAR UNIDAD MUNICIPAL AGUACHICA",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110058802 - CRUZ ROJA COLOMBIANA SECCIOAL CESAR UNIDAD MUNICIPAL AGUACHICA"
+  },
+  {
+    "code": "200110187501",
+    "name": "E&G MÉDICOS IPS SAS SEDE 1",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110187501 - E&G MÉDICOS IPS SAS SEDE 1"
+  },
+  {
+    "code": "200110057201",
+    "name": "ESE HOSPITAL REGIONAL DE AGUACHICA JOSE DAVID PADILLA VILLAFAÑE",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "publicas",
+    "label": "200110057201 - ESE HOSPITAL REGIONAL DE AGUACHICA JOSE DAVID PADILLA VILLAFAÑE"
+  },
+  {
+    "code": "200110237801",
+    "name": "GASTROSUR DEL CESAR SAS ZOMAC",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110237801 - GASTROSUR DEL CESAR SAS ZOMAC"
+  },
+  {
+    "code": "200110012601",
+    "name": "HOSPITAL LOCAL DE AGUACHICA",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "publicas",
+    "label": "200110012601 - HOSPITAL LOCAL DE AGUACHICA"
+  },
+  {
+    "code": "200110280801",
+    "name": "I.P.S HORIZONTES DE ESPERANZA S.A.S.",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110280801 - I.P.S HORIZONTES DE ESPERANZA S.A.S."
+  },
+  {
+    "code": "200110164301",
+    "name": "IMAGEN AYUDAS DIAGNOSTICAS DIGITALES SAS",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110164301 - IMAGEN AYUDAS DIAGNOSTICAS DIGITALES SAS"
+  },
+  {
+    "code": "200110184101",
+    "name": "IPS MI SALUD EN CASA SAS",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110184101 - IPS MI SALUD EN CASA SAS"
+  },
+  {
+    "code": "200110139602",
+    "name": "LABORATORIO CLINICO CRISTIAM GRAM AGUACHICA",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110139602 - LABORATORIO CLINICO CRISTIAM GRAM AGUACHICA"
+  },
+  {
+    "code": "200110180102",
+    "name": "LABORATORIO CLINICO DE ESPECIALISTAS MARÍA AUXILIADORA",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110180102 - LABORATORIO CLINICO DE ESPECIALISTAS MARÍA AUXILIADORA"
+  },
+  {
+    "code": "200110180101",
+    "name": "LABORATORIO CLÍNICO DE ESPECIALISTAS MARÍA AUXILIADORA SEDE 2",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110180101 - LABORATORIO CLÍNICO DE ESPECIALISTAS MARÍA AUXILIADORA SEDE 2"
+  },
+  {
+    "code": "200110236201",
+    "name": "LUZDA SALUD I.P.S.",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110236201 - LUZDA SALUD I.P.S."
+  },
+  {
+    "code": "200110224802",
+    "name": "M&S SOLUTIONS LABORATORIO AGUACHICA",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110224802 - M&S SOLUTIONS LABORATORIO AGUACHICA"
+  },
+  {
+    "code": "200110224803",
+    "name": "M&S SOLUTIONS S.A.S SEDE 3",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110224803 - M&S SOLUTIONS S.A.S SEDE 3"
+  },
+  {
+    "code": "200110224801",
+    "name": "M&S SOLUTIONS SAS AGUACHICA",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110224801 - M&S SOLUTIONS SAS AGUACHICA"
+  },
+  {
+    "code": "200110152301",
+    "name": "MEDICA IPS Servicios Médicos Integrados",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110152301 - MEDICA IPS Servicios Médicos Integrados"
+  },
+  {
+    "code": "200110219501",
+    "name": "N&T IMAGENES Y ESPECIALISTAS S.A.S.",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110219501 - N&T IMAGENES Y ESPECIALISTAS S.A.S."
+  },
+  {
+    "code": "200110215901",
+    "name": "NACER CENTRO MEDICO IPS SAS",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110215901 - NACER CENTRO MEDICO IPS SAS"
+  },
+  {
+    "code": "200110184003",
+    "name": "PARCONT S.A.S",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110184003 - PARCONT S.A.S"
+  },
+  {
+    "code": "200110012604",
+    "name": "PUESTO DE SALUD DE BARRANCA LEBRIJA",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "publicas",
+    "label": "200110012604 - PUESTO DE SALUD DE BARRANCA LEBRIJA"
+  },
+  {
+    "code": "200110012603",
+    "name": "PUESTO DE SALUD DE BUTURAMA",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "publicas",
+    "label": "200110012603 - PUESTO DE SALUD DE BUTURAMA"
+  },
+  {
+    "code": "200110012605",
+    "name": "PUESTO DE SALUD DE CAMPO AMALIA",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "publicas",
+    "label": "200110012605 - PUESTO DE SALUD DE CAMPO AMALIA"
+  },
+  {
+    "code": "200110012611",
+    "name": "PUESTO DE SALUD DE JUNCAL",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "publicas",
+    "label": "200110012611 - PUESTO DE SALUD DE JUNCAL"
+  },
+  {
+    "code": "200110012612",
+    "name": "PUESTO DE SALUD DE LOMA DE CORREDOR",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "publicas",
+    "label": "200110012612 - PUESTO DE SALUD DE LOMA DE CORREDOR"
+  },
+  {
+    "code": "200110012606",
+    "name": "PUESTO DE SALUD DE NOREAN",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "publicas",
+    "label": "200110012606 - PUESTO DE SALUD DE NOREAN"
+  },
+  {
+    "code": "200110012607",
+    "name": "PUESTO DE SALUD DE PUERTO PATIÑO",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "publicas",
+    "label": "200110012607 - PUESTO DE SALUD DE PUERTO PATIÑO"
+  },
+  {
+    "code": "200110012608",
+    "name": "PUESTO DE SALUD DE SANTA LUCIA",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "publicas",
+    "label": "200110012608 - PUESTO DE SALUD DE SANTA LUCIA"
+  },
+  {
+    "code": "200110012609",
+    "name": "PUESTO DE SALUD DE VILLA DE SAN ANDRES",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "publicas",
+    "label": "200110012609 - PUESTO DE SALUD DE VILLA DE SAN ANDRES"
+  },
+  {
+    "code": "200110198404",
+    "name": "Sagrado Corazón de Jesús",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110198404 - Sagrado Corazón de Jesús"
+  },
+  {
+    "code": "200110001003",
+    "name": "SANTA SALUD IPS",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110001003 - SANTA SALUD IPS"
+  },
+  {
+    "code": "200110001001",
+    "name": "SANTA SALUD IPS LTDA",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110001001 - SANTA SALUD IPS LTDA"
+  },
+  {
+    "code": "200110184601",
+    "name": "SERVICIOS MEDICOS ESPECIALIZADOS PREVENIR IPS S.A.S",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110184601 - SERVICIOS MEDICOS ESPECIALIZADOS PREVENIR IPS S.A.S"
+  },
+  {
+    "code": "200110150501",
+    "name": "SISMEDICA CESAR",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110150501 - SISMEDICA CESAR"
+  },
+  {
+    "code": "200110180801",
+    "name": "SOCIEDAD CLINICA BODY & HEALTH SAS",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110180801 - SOCIEDAD CLINICA BODY & HEALTH SAS"
+  },
+  {
+    "code": "200110142901",
+    "name": "SOCIEDAD REGIONAL DE CIRUGIA OCULAR S.A.S",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110142901 - SOCIEDAD REGIONAL DE CIRUGIA OCULAR S.A.S"
+  },
+  {
+    "code": "200110252202",
+    "name": "SOPORTE DE ATENCION INTEGRAL EN SALUD SAMI AGUACHICA",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110252202 - SOPORTE DE ATENCION INTEGRAL EN SALUD SAMI AGUACHICA"
+  },
+  {
+    "code": "200110278601",
+    "name": "UNIDAD MENTAL RESURGIR IPS S.A.S",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110278601 - UNIDAD MENTAL RESURGIR IPS S.A.S"
+  },
+  {
+    "code": "200110236402",
+    "name": "UNIDAD MENTAL SANATE IPS S.A.S. CONSULTA EXTERNA",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110236402 - UNIDAD MENTAL SANATE IPS S.A.S. CONSULTA EXTERNA"
+  },
+  {
+    "code": "200110236401",
+    "name": "UNIDAD MENTAL SANATE IPS SAS",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110236401 - UNIDAD MENTAL SANATE IPS SAS"
+  },
+  {
+    "code": "200110228701",
+    "name": "UNIDAD ODONTOLOGICA OPESAN SAS",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110228701 - UNIDAD ODONTOLOGICA OPESAN SAS"
+  },
+  {
+    "code": "200110198401",
+    "name": "UNIDAD PRESTADORA DE SERVICIOS DE SALUD MENTAL UNIPSSAM SAS",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110198401 - UNIDAD PRESTADORA DE SERVICIOS DE SALUD MENTAL UNIPSSAM SAS"
+  },
+  {
+    "code": "200110222205",
+    "name": "UNIMUJER IPS SEDE 2",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110222205 - UNIMUJER IPS SEDE 2"
+  },
+  {
+    "code": "200110222201",
+    "name": "UNIMUJER IPS SEDE PRINCIPAL",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110222201 - UNIMUJER IPS SEDE PRINCIPAL"
+  },
+  {
+    "code": "200110288001",
+    "name": "URGEMEDIC IPS SAS",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110288001 - URGEMEDIC IPS SAS"
+  },
+  {
+    "code": "200110138304",
+    "name": "VISION DEL LITORAL S.A.S.",
+    "department": "Cesar",
+    "municipality": "AGUACHICA",
+    "source": "privadas",
+    "label": "200110138304 - VISION DEL LITORAL S.A.S."
+  },
+  {
+    "code": "200130286001",
+    "name": "CENTRO DE ATENCION INTEGRAL EN SALUD MARIA PAZ IPS S.A.S",
+    "department": "Cesar",
+    "municipality": "AGUSTÍN CODAZZI",
+    "source": "privadas",
+    "label": "200130286001 - CENTRO DE ATENCION INTEGRAL EN SALUD MARIA PAZ IPS S.A.S"
+  },
+  {
+    "code": "200130167805",
+    "name": "CENTRO DE REHABILITACION INTEGRAL NUEVO AMANECER LST SEDE EL TESORO",
+    "department": "Cesar",
+    "municipality": "AGUSTÍN CODAZZI",
+    "source": "privadas",
+    "label": "200130167805 - CENTRO DE REHABILITACION INTEGRAL NUEVO AMANECER LST SEDE EL TESORO"
+  },
+  {
+    "code": "200130167803",
+    "name": "CENTRO DE REHABILITACIÓN INTEGRAL NUEVO AMANECER LST SEDE ESPERANZA",
+    "department": "Cesar",
+    "municipality": "AGUSTÍN CODAZZI",
+    "source": "privadas",
+    "label": "200130167803 - CENTRO DE REHABILITACIÓN INTEGRAL NUEVO AMANECER LST SEDE ESPERANZA"
+  },
+  {
+    "code": "200130134602",
+    "name": "CLINICA CODAZZI",
+    "department": "Cesar",
+    "municipality": "AGUSTÍN CODAZZI",
+    "source": "privadas",
+    "label": "200130134602 - CLINICA CODAZZI"
+  },
+  {
+    "code": "200130134605",
+    "name": "CLINICA CODAZZI GOLD",
+    "department": "Cesar",
+    "municipality": "AGUSTÍN CODAZZI",
+    "source": "privadas",
+    "label": "200130134605 - CLINICA CODAZZI GOLD"
+  },
+  {
+    "code": "200130001211",
+    "name": "DUSAKAWI IPS SEDE CODAZZI",
+    "department": "Cesar",
+    "municipality": "AGUSTÍN CODAZZI",
+    "source": "privadas",
+    "label": "200130001211 - DUSAKAWI IPS SEDE CODAZZI"
+  },
+  {
+    "code": "200130001216",
+    "name": "DUSAKAWI IPSI - NANAECHPO",
+    "department": "Cesar",
+    "municipality": "AGUSTÍN CODAZZI",
+    "source": "privadas",
+    "label": "200130001216 - DUSAKAWI IPSI - NANAECHPO"
+  },
+  {
+    "code": "200130059101",
+    "name": "HOSPITAL AGUSTIN CODAZZI E.S.E.",
+    "department": "Cesar",
+    "municipality": "AGUSTÍN CODAZZI",
+    "source": "publicas",
+    "label": "200130059101 - HOSPITAL AGUSTIN CODAZZI E.S.E."
+  },
+  {
+    "code": "200130113901",
+    "name": "INSTITUTO DE REHABILITACION INTEGRAL CARITA FELICES LTDA",
+    "department": "Cesar",
+    "municipality": "AGUSTÍN CODAZZI",
+    "source": "privadas",
+    "label": "200130113901 - INSTITUTO DE REHABILITACION INTEGRAL CARITA FELICES LTDA"
+  },
+  {
+    "code": "200130231301",
+    "name": "IPS CLINICA SAN MARTIN CODAZZI SAS",
+    "department": "Cesar",
+    "municipality": "AGUSTÍN CODAZZI",
+    "source": "privadas",
+    "label": "200130231301 - IPS CLINICA SAN MARTIN CODAZZI SAS"
+  },
+  {
+    "code": "200130139616",
+    "name": "LABORATORIO CLINICO CRISTIAM GRAM SEDE CODAZZI",
+    "department": "Cesar",
+    "municipality": "AGUSTÍN CODAZZI",
+    "source": "privadas",
+    "label": "200130139616 - LABORATORIO CLINICO CRISTIAM GRAM SEDE CODAZZI"
+  },
+  {
+    "code": "200130115401",
+    "name": "ODONSERVIS EU",
+    "department": "Cesar",
+    "municipality": "AGUSTÍN CODAZZI",
+    "source": "privadas",
+    "label": "200130115401 - ODONSERVIS EU"
+  },
+  {
+    "code": "200130181801",
+    "name": "PREVISALUD S.O IPS SAS",
+    "department": "Cesar",
+    "municipality": "AGUSTÍN CODAZZI",
+    "source": "privadas",
+    "label": "200130181801 - PREVISALUD S.O IPS SAS"
+  },
+  {
+    "code": "200130059103",
+    "name": "PUESTO DE SALUD CASACARA",
+    "department": "Cesar",
+    "municipality": "AGUSTÍN CODAZZI",
+    "source": "publicas",
+    "label": "200130059103 - PUESTO DE SALUD CASACARA"
+  },
+  {
+    "code": "200130059104",
+    "name": "PUESTO DE SALUD LLERASCA",
+    "department": "Cesar",
+    "municipality": "AGUSTÍN CODAZZI",
+    "source": "publicas",
+    "label": "200130059104 - PUESTO DE SALUD LLERASCA"
+  },
+  {
+    "code": "200130286002",
+    "name": "SEDE MENTAL SANTA RITA",
+    "department": "Cesar",
+    "municipality": "AGUSTÍN CODAZZI",
+    "source": "privadas",
+    "label": "200130286002 - SEDE MENTAL SANTA RITA"
+  },
+  {
+    "code": "200130198901",
+    "name": "Sociedad Medica Baquero y Asociados SAS - SOMEBA",
+    "department": "Cesar",
+    "municipality": "AGUSTÍN CODAZZI",
+    "source": "privadas",
+    "label": "200130198901 - Sociedad Medica Baquero y Asociados SAS - SOMEBA"
+  },
+  {
+    "code": "200320031501",
+    "name": "HOSPITAL SAN MARTIN",
+    "department": "Cesar",
+    "municipality": "ASTREA",
+    "source": "publicas",
+    "label": "200320031501 - HOSPITAL SAN MARTIN"
+  },
+  {
+    "code": "200320031503",
+    "name": "PUESTO DE SALUD DE SANTA CECELIA",
+    "department": "Cesar",
+    "municipality": "ASTREA",
+    "source": "publicas",
+    "label": "200320031503 - PUESTO DE SALUD DE SANTA CECELIA"
+  },
+  {
+    "code": "200320031502",
+    "name": "PUESTO DE SALUD SEDE ARJONA",
+    "department": "Cesar",
+    "municipality": "ASTREA",
+    "source": "publicas",
+    "label": "200320031502 - PUESTO DE SALUD SEDE ARJONA"
+  },
+  {
+    "code": "200450001214",
+    "name": "DUSAKAWI IPSI - SAN GENARO",
+    "department": "Cesar",
+    "municipality": "BECERRIL",
+    "source": "privadas",
+    "label": "200450001214 - DUSAKAWI IPSI - SAN GENARO"
+  },
+  {
+    "code": "200450043901",
+    "name": "ESE SAN JOSE",
+    "department": "Cesar",
+    "municipality": "BECERRIL",
+    "source": "publicas",
+    "label": "200450043901 - ESE SAN JOSE"
+  },
+  {
+    "code": "200450092501",
+    "name": "MEDYDONT IPS",
+    "department": "Cesar",
+    "municipality": "BECERRIL",
+    "source": "privadas",
+    "label": "200450092501 - MEDYDONT IPS"
+  },
+  {
+    "code": "200450043905",
+    "name": "PUESTO DE SALUD LA GUAJIRITA",
+    "department": "Cesar",
+    "municipality": "BECERRIL",
+    "source": "publicas",
+    "label": "200450043905 - PUESTO DE SALUD LA GUAJIRITA"
+  },
+  {
+    "code": "200450043906",
+    "name": "PUESTO E SALUD ESTADOS UNIDOS",
+    "department": "Cesar",
+    "municipality": "BECERRIL",
+    "source": "publicas",
+    "label": "200450043906 - PUESTO E SALUD ESTADOS UNIDOS"
+  },
+  {
+    "code": "200600133202",
+    "name": "APREHSI SEDE BOSCONIA",
+    "department": "Cesar",
+    "municipality": "BOSCONIA",
+    "source": "privadas",
+    "label": "200600133202 - APREHSI SEDE BOSCONIA"
+  },
+  {
+    "code": "200600127401",
+    "name": "CENTRO DE REHABILITACION ROSALIA MENA S.A.S",
+    "department": "Cesar",
+    "municipality": "BOSCONIA",
+    "source": "privadas",
+    "label": "200600127401 - CENTRO DE REHABILITACION ROSALIA MENA S.A.S"
+  },
+  {
+    "code": "200600164502",
+    "name": "CLINICA REGIONAL DE ESPECIALISTAS SINAIS VITAIS SAS",
+    "department": "Cesar",
+    "municipality": "BOSCONIA",
+    "source": "privadas",
+    "label": "200600164502 - CLINICA REGIONAL DE ESPECIALISTAS SINAIS VITAIS SAS"
+  },
+  {
+    "code": "200600053201",
+    "name": "HOSPITAL SAN JUAN BOSCO E.S.E",
+    "department": "Cesar",
+    "municipality": "BOSCONIA",
+    "source": "publicas",
+    "label": "200600053201 - HOSPITAL SAN JUAN BOSCO E.S.E"
+  },
+  {
+    "code": "200600238702",
+    "name": "LABORATORIO CLINICO MARIA JOSE",
+    "department": "Cesar",
+    "municipality": "BOSCONIA",
+    "source": "privadas",
+    "label": "200600238702 - LABORATORIO CLINICO MARIA JOSE"
+  },
+  {
+    "code": "200600139617",
+    "name": "LABORATORIO CLÍNICO CRISTIAM GRAM I.P.S SEDE BOSCONIA",
+    "department": "Cesar",
+    "municipality": "BOSCONIA",
+    "source": "privadas",
+    "label": "200600139617 - LABORATORIO CLÍNICO CRISTIAM GRAM I.P.S SEDE BOSCONIA"
+  },
+  {
+    "code": "200600114201",
+    "name": "ODONTOCLASS I.P.S. E.U.",
+    "department": "Cesar",
+    "municipality": "BOSCONIA",
+    "source": "privadas",
+    "label": "200600114201 - ODONTOCLASS I.P.S. E.U."
+  },
+  {
+    "code": "200600290501",
+    "name": "OPTICA GDA BOSCONIA",
+    "department": "Cesar",
+    "municipality": "BOSCONIA",
+    "source": "privadas",
+    "label": "200600290501 - OPTICA GDA BOSCONIA"
+  },
+  {
+    "code": "200600236501",
+    "name": "saude mental",
+    "department": "Cesar",
+    "municipality": "BOSCONIA",
+    "source": "privadas",
+    "label": "200600236501 - saude mental"
+  },
+  {
+    "code": "200600281301",
+    "name": "SOLUCIONES INTEGRALES AL SERVICIO DE LA SALUD SAS",
+    "department": "Cesar",
+    "municipality": "BOSCONIA",
+    "source": "privadas",
+    "label": "200600281301 - SOLUCIONES INTEGRALES AL SERVICIO DE LA SALUD SAS"
+  },
+  {
+    "code": "200600092001",
+    "name": "UNIDAD MEDICA SU SALUD E.U",
+    "department": "Cesar",
+    "municipality": "BOSCONIA",
+    "source": "privadas",
+    "label": "200600092001 - UNIDAD MEDICA SU SALUD E.U"
+  },
+  {
+    "code": "200600092002",
+    "name": "UNIDAD MEDICA SU SALUD EU",
+    "department": "Cesar",
+    "municipality": "BOSCONIA",
+    "source": "privadas",
+    "label": "200600092002 - UNIDAD MEDICA SU SALUD EU"
+  },
+  {
+    "code": "201750234701",
+    "name": "CENTRO DE REHBILITACION INTEGRALDRA JULIETH ARAMBULA S.A.S",
+    "department": "Cesar",
+    "municipality": "CHIMICHAGUA",
+    "source": "privadas",
+    "label": "201750234701 - CENTRO DE REHBILITACION INTEGRALDRA JULIETH ARAMBULA S.A.S"
+  },
+  {
+    "code": "201750036015",
+    "name": "CENTRO MATERNO INFANTIL SALOA",
+    "department": "Cesar",
+    "municipality": "CHIMICHAGUA",
+    "source": "publicas",
+    "label": "201750036015 - CENTRO MATERNO INFANTIL SALOA"
+  },
+  {
+    "code": "201750036001",
+    "name": "HOSPITAL INMACULADA CONCEPCION DE CHIMIHCAGUA",
+    "department": "Cesar",
+    "municipality": "CHIMICHAGUA",
+    "source": "publicas",
+    "label": "201750036001 - HOSPITAL INMACULADA CONCEPCION DE CHIMIHCAGUA"
+  },
+  {
+    "code": "201750036016",
+    "name": "PUESTO DE SALUD DE CANDELARIA",
+    "department": "Cesar",
+    "municipality": "CHIMICHAGUA",
+    "source": "publicas",
+    "label": "201750036016 - PUESTO DE SALUD DE CANDELARIA"
+  },
+  {
+    "code": "201750036014",
+    "name": "PUESTO DE SALUD DE MANDINGUILLA",
+    "department": "Cesar",
+    "municipality": "CHIMICHAGUA",
+    "source": "publicas",
+    "label": "201750036014 - PUESTO DE SALUD DE MANDINGUILLA"
+  },
+  {
+    "code": "201750036020",
+    "name": "PUESTO DE SALUD DE SEMPEGUA",
+    "department": "Cesar",
+    "municipality": "CHIMICHAGUA",
+    "source": "publicas",
+    "label": "201750036020 - PUESTO DE SALUD DE SEMPEGUA"
+  },
+  {
+    "code": "201750036018",
+    "name": "PUESTO DE SALUD EL GUAMO",
+    "department": "Cesar",
+    "municipality": "CHIMICHAGUA",
+    "source": "publicas",
+    "label": "201750036018 - PUESTO DE SALUD EL GUAMO"
+  },
+  {
+    "code": "201750036022",
+    "name": "PUESTO DE SALUD LA MATA",
+    "department": "Cesar",
+    "municipality": "CHIMICHAGUA",
+    "source": "publicas",
+    "label": "201750036022 - PUESTO DE SALUD LA MATA"
+  },
+  {
+    "code": "201750036017",
+    "name": "PUESTO DE SALUD LAS FLORES",
+    "department": "Cesar",
+    "municipality": "CHIMICHAGUA",
+    "source": "publicas",
+    "label": "201750036017 - PUESTO DE SALUD LAS FLORES"
+  },
+  {
+    "code": "201780119403",
+    "name": "BIENESTAR IPS S.A.S. CHIRIGUANÁ",
+    "department": "Cesar",
+    "municipality": "CHIRIGUANÁ",
+    "source": "privadas",
+    "label": "201780119403 - BIENESTAR IPS S.A.S. CHIRIGUANÁ"
+  },
+  {
+    "code": "201780268601",
+    "name": "CENTRO DE REHABILITACION Y DIAGNOSTICO CARDIOPULMONAR SAS",
+    "department": "Cesar",
+    "municipality": "CHIRIGUANÁ",
+    "source": "privadas",
+    "label": "201780268601 - CENTRO DE REHABILITACION Y DIAGNOSTICO CARDIOPULMONAR SAS"
+  },
+  {
+    "code": "201780056809",
+    "name": "CENTRO MATERNO INFANTIL DE POPONTE",
+    "department": "Cesar",
+    "municipality": "CHIRIGUANÁ",
+    "source": "publicas",
+    "label": "201780056809 - CENTRO MATERNO INFANTIL DE POPONTE"
+  },
+  {
+    "code": "201780056806",
+    "name": "CENTRO MATERNO INFANTIL DE RINCONHONDO",
+    "department": "Cesar",
+    "municipality": "CHIRIGUANÁ",
+    "source": "publicas",
+    "label": "201780056806 - CENTRO MATERNO INFANTIL DE RINCONHONDO"
+  },
+  {
+    "code": "201780056801",
+    "name": "Hospital Regional San andres ESE",
+    "department": "Cesar",
+    "municipality": "CHIRIGUANÁ",
+    "source": "publicas",
+    "label": "201780056801 - Hospital Regional San andres ESE"
+  },
+  {
+    "code": "201780170201",
+    "name": "IPS CENTRO INTEGRAL SALUD DEL CESAR",
+    "department": "Cesar",
+    "municipality": "CHIRIGUANÁ",
+    "source": "privadas",
+    "label": "201780170201 - IPS CENTRO INTEGRAL SALUD DEL CESAR"
+  },
+  {
+    "code": "201780278201",
+    "name": "IPS CENTRO REHABILITACION INTEGRAL MARY CARMEN S.A.S.",
+    "department": "Cesar",
+    "municipality": "CHIRIGUANÁ",
+    "source": "privadas",
+    "label": "201780278201 - IPS CENTRO REHABILITACION INTEGRAL MARY CARMEN S.A.S."
+  },
+  {
+    "code": "201780139623",
+    "name": "LABORATORIO CLINICO CRISTIAM GRAM IPS SAS SEDE CHIRIGUANA",
+    "department": "Cesar",
+    "municipality": "CHIRIGUANÁ",
+    "source": "privadas",
+    "label": "201780139623 - LABORATORIO CLINICO CRISTIAM GRAM IPS SAS SEDE CHIRIGUANA"
+  },
+  {
+    "code": "201780170001",
+    "name": "Laboratorio Clinico Flórez Castilla SAS",
+    "department": "Cesar",
+    "municipality": "CHIRIGUANÁ",
+    "source": "privadas",
+    "label": "201780170001 - Laboratorio Clinico Flórez Castilla SAS"
+  },
+  {
+    "code": "201780056808",
+    "name": "PUESTO DE SALUD DE LA AURORA",
+    "department": "Cesar",
+    "municipality": "CHIRIGUANÁ",
+    "source": "publicas",
+    "label": "201780056808 - PUESTO DE SALUD DE LA AURORA"
+  },
+  {
+    "code": "201780056807",
+    "name": "PUESTO DE SALUD DE LA SIERRA",
+    "department": "Cesar",
+    "municipality": "CHIRIGUANÁ",
+    "source": "publicas",
+    "label": "201780056807 - PUESTO DE SALUD DE LA SIERRA"
+  },
+  {
+    "code": "201780076501",
+    "name": "SALUD HUMANA EMPRESA S.A.S",
+    "department": "Cesar",
+    "municipality": "CHIRIGUANÁ",
+    "source": "privadas",
+    "label": "201780076501 - SALUD HUMANA EMPRESA S.A.S"
+  },
+  {
+    "code": "202280133203",
+    "name": "APREHSI SEDE CURUMANI",
+    "department": "Cesar",
+    "municipality": "CURUMANÍ",
+    "source": "privadas",
+    "label": "202280133203 - APREHSI SEDE CURUMANI"
+  },
+  {
+    "code": "202280119404",
+    "name": "BIENESTAR IPS S.A.S. CURUMANÍ",
+    "department": "Cesar",
+    "municipality": "CURUMANÍ",
+    "source": "privadas",
+    "label": "202280119404 - BIENESTAR IPS S.A.S. CURUMANÍ"
+  },
+  {
+    "code": "202280038204",
+    "name": "CENTRO DE SALUD DE SAN ROQUE",
+    "department": "Cesar",
+    "municipality": "CURUMANÍ",
+    "source": "publicas",
+    "label": "202280038204 - CENTRO DE SALUD DE SAN ROQUE"
+  },
+  {
+    "code": "202280282801",
+    "name": "CENTROMEDICO Y REHABILITACION KASSALUD IPS SAS",
+    "department": "Cesar",
+    "municipality": "CURUMANÍ",
+    "source": "privadas",
+    "label": "202280282801 - CENTROMEDICO Y REHABILITACION KASSALUD IPS SAS"
+  },
+  {
+    "code": "202280038201",
+    "name": "HOSPITAL CRISTIAN MORENO PALLARES",
+    "department": "Cesar",
+    "municipality": "CURUMANÍ",
+    "source": "publicas",
+    "label": "202280038201 - HOSPITAL CRISTIAN MORENO PALLARES"
+  },
+  {
+    "code": "202280045901",
+    "name": "MEDIC SALUD IPS",
+    "department": "Cesar",
+    "municipality": "CURUMANÍ",
+    "source": "privadas",
+    "label": "202280045901 - MEDIC SALUD IPS"
+  },
+  {
+    "code": "202280038205",
+    "name": "PUESTO DE SALUD DE CHAMPAN",
+    "department": "Cesar",
+    "municipality": "CURUMANÍ",
+    "source": "publicas",
+    "label": "202280038205 - PUESTO DE SALUD DE CHAMPAN"
+  },
+  {
+    "code": "202280038208",
+    "name": "PUESTO DE SALUD EL MAMEY",
+    "department": "Cesar",
+    "municipality": "CURUMANÍ",
+    "source": "publicas",
+    "label": "202280038208 - PUESTO DE SALUD EL MAMEY"
+  },
+  {
+    "code": "202280038203",
+    "name": "PUESTO DE SALUD GUAIMARAL",
+    "department": "Cesar",
+    "municipality": "CURUMANÍ",
+    "source": "publicas",
+    "label": "202280038203 - PUESTO DE SALUD GUAIMARAL"
+  },
+  {
+    "code": "202280038202",
+    "name": "PUESTO DE SALUD SABANA GRANDE",
+    "department": "Cesar",
+    "municipality": "CURUMANÍ",
+    "source": "publicas",
+    "label": "202280038202 - PUESTO DE SALUD SABANA GRANDE"
+  },
+  {
+    "code": "202280038206",
+    "name": "PUESTO DE SALUD SAN SEBASTIAN",
+    "department": "Cesar",
+    "municipality": "CURUMANÍ",
+    "source": "publicas",
+    "label": "202280038206 - PUESTO DE SALUD SAN SEBASTIAN"
+  },
+  {
+    "code": "202280038207",
+    "name": "PUESTO DE SALUD SANTA ISABEL",
+    "department": "Cesar",
+    "municipality": "CURUMANÍ",
+    "source": "publicas",
+    "label": "202280038207 - PUESTO DE SALUD SANTA ISABEL"
+  },
+  {
+    "code": "202280022801",
+    "name": "UNIDAD MEDICA SANTISIMA TRINIDAD EU",
+    "department": "Cesar",
+    "municipality": "CURUMANÍ",
+    "source": "privadas",
+    "label": "202280022801 - UNIDAD MEDICA SANTISIMA TRINIDAD EU"
+  },
+  {
+    "code": "202380260401",
+    "name": "CENTRO DE REHABILITACION INTEGRAL EFATA",
+    "department": "Cesar",
+    "municipality": "EL COPEY",
+    "source": "privadas",
+    "label": "202380260401 - CENTRO DE REHABILITACION INTEGRAL EFATA"
+  },
+  {
+    "code": "202380053104",
+    "name": "ESE HOSPITAL SAN ROQUE PUESTO DE SALUD CARACOLICITO",
+    "department": "Cesar",
+    "municipality": "EL COPEY",
+    "source": "publicas",
+    "label": "202380053104 - ESE HOSPITAL SAN ROQUE PUESTO DE SALUD CARACOLICITO"
+  },
+  {
+    "code": "202380053103",
+    "name": "ESE HOSPITAL SAN ROQUE PUESTO DE SALUD CHIMILA",
+    "department": "Cesar",
+    "municipality": "EL COPEY",
+    "source": "publicas",
+    "label": "202380053103 - ESE HOSPITAL SAN ROQUE PUESTO DE SALUD CHIMILA"
+  },
+  {
+    "code": "202380053102",
+    "name": "ESE HOSPITAL SAN ROQUE PUESTO DE SALUD SAN FRANCISCO",
+    "department": "Cesar",
+    "municipality": "EL COPEY",
+    "source": "publicas",
+    "label": "202380053102 - ESE HOSPITAL SAN ROQUE PUESTO DE SALUD SAN FRANCISCO"
+  },
+  {
+    "code": "202380171101",
+    "name": "FUNDACION DE REHABILITACION INTEGRAL SONREIR",
+    "department": "Cesar",
+    "municipality": "EL COPEY",
+    "source": "privadas",
+    "label": "202380171101 - FUNDACION DE REHABILITACION INTEGRAL SONREIR"
+  },
+  {
+    "code": "202380053101",
+    "name": "HOSPITAL SAN ROQUE ESE",
+    "department": "Cesar",
+    "municipality": "EL COPEY",
+    "source": "publicas",
+    "label": "202380053101 - HOSPITAL SAN ROQUE ESE"
+  },
+  {
+    "code": "202380082801",
+    "name": "PALMA SALUD IPS LTDA",
+    "department": "Cesar",
+    "municipality": "EL COPEY",
+    "source": "privadas",
+    "label": "202380082801 - PALMA SALUD IPS LTDA"
+  },
+  {
+    "code": "202380082802",
+    "name": "PALMA SALUD SEDE 02",
+    "department": "Cesar",
+    "municipality": "EL COPEY",
+    "source": "privadas",
+    "label": "202380082802 - PALMA SALUD SEDE 02"
+  },
+  {
+    "code": "202500211601",
+    "name": "AMORSALUD I.P.S.",
+    "department": "Cesar",
+    "municipality": "EL PASO",
+    "source": "privadas",
+    "label": "202500211601 - AMORSALUD I.P.S."
+  },
+  {
+    "code": "202500061702",
+    "name": "CENTRO MATERNO INFANTIL DE LA LOMA",
+    "department": "Cesar",
+    "municipality": "EL PASO",
+    "source": "publicas",
+    "label": "202500061702 - CENTRO MATERNO INFANTIL DE LA LOMA"
+  },
+  {
+    "code": "202500125101",
+    "name": "CLINICA MARYBAU LA LOMA LTDA",
+    "department": "Cesar",
+    "municipality": "EL PASO",
+    "source": "privadas",
+    "label": "202500125101 - CLINICA MARYBAU LA LOMA LTDA"
+  },
+  {
+    "code": "202500061707",
+    "name": "E.S.E HOSPITAL HERNANDO QUINTERO BLANCO",
+    "department": "Cesar",
+    "municipality": "EL PASO",
+    "source": "publicas",
+    "label": "202500061707 - E.S.E HOSPITAL HERNANDO QUINTERO BLANCO"
+  },
+  {
+    "code": "202500040801",
+    "name": "IPS MARIBAU",
+    "department": "Cesar",
+    "municipality": "EL PASO",
+    "source": "privadas",
+    "label": "202500040801 - IPS MARIBAU"
+  },
+  {
+    "code": "202500040802",
+    "name": "IPS MARIBAU SEDE 02",
+    "department": "Cesar",
+    "municipality": "EL PASO",
+    "source": "privadas",
+    "label": "202500040802 - IPS MARIBAU SEDE 02"
+  },
+  {
+    "code": "202500061703",
+    "name": "PUESTO DE SALUD DE CUATRO VIENTOS",
+    "department": "Cesar",
+    "municipality": "EL PASO",
+    "source": "publicas",
+    "label": "202500061703 - PUESTO DE SALUD DE CUATRO VIENTOS"
+  },
+  {
+    "code": "202500061704",
+    "name": "PUESTO DE SALUD EL CARMEN",
+    "department": "Cesar",
+    "municipality": "EL PASO",
+    "source": "publicas",
+    "label": "202500061704 - PUESTO DE SALUD EL CARMEN"
+  },
+  {
+    "code": "202500061705",
+    "name": "PUESTO DE SALUD EL VALLITO",
+    "department": "Cesar",
+    "municipality": "EL PASO",
+    "source": "publicas",
+    "label": "202500061705 - PUESTO DE SALUD EL VALLITO"
+  },
+  {
+    "code": "202500061706",
+    "name": "PUESTO DE SALUD POTRERILLO",
+    "department": "Cesar",
+    "municipality": "EL PASO",
+    "source": "publicas",
+    "label": "202500061706 - PUESTO DE SALUD POTRERILLO"
+  },
+  {
+    "code": "202500229304",
+    "name": "VIRREY SOLIS IPS S.A LA LOMA",
+    "department": "Cesar",
+    "municipality": "EL PASO",
+    "source": "privadas",
+    "label": "202500229304 - VIRREY SOLIS IPS S.A LA LOMA"
+  },
+  {
+    "code": "202950056701",
+    "name": "HOSPITAL OLAYA HERRERA",
+    "department": "Cesar",
+    "municipality": "GAMARRA",
+    "source": "publicas",
+    "label": "202950056701 - HOSPITAL OLAYA HERRERA"
+  },
+  {
+    "code": "202950056710",
+    "name": "PUESTO DE SALUD EL CONTENTO",
+    "department": "Cesar",
+    "municipality": "GAMARRA",
+    "source": "publicas",
+    "label": "202950056710 - PUESTO DE SALUD EL CONTENTO"
+  },
+  {
+    "code": "202950056709",
+    "name": "PUESTO DE SALUD PALENQUILLO",
+    "department": "Cesar",
+    "municipality": "GAMARRA",
+    "source": "publicas",
+    "label": "202950056709 - PUESTO DE SALUD PALENQUILLO"
+  },
+  {
+    "code": "202950056708",
+    "name": "PUESTO DE SALUD PUERTO MOSQUITO",
+    "department": "Cesar",
+    "municipality": "GAMARRA",
+    "source": "publicas",
+    "label": "202950056708 - PUESTO DE SALUD PUERTO MOSQUITO"
+  },
+  {
+    "code": "203100052101",
+    "name": "HOSPITAL SAN JUAN CRISOSTOMO",
+    "department": "Cesar",
+    "municipality": "GONZÁLEZ",
+    "source": "publicas",
+    "label": "203100052101 - HOSPITAL SAN JUAN CRISOSTOMO"
+  },
+  {
+    "code": "203100052102",
+    "name": "PUESTO DE SALUD DE BURBURA",
+    "department": "Cesar",
+    "municipality": "GONZÁLEZ",
+    "source": "publicas",
+    "label": "203100052102 - PUESTO DE SALUD DE BURBURA"
+  },
+  {
+    "code": "203830045308",
+    "name": "CENTRO MATERNO INFANTIL LA MATA",
+    "department": "Cesar",
+    "municipality": "LA GLORIA",
+    "source": "publicas",
+    "label": "203830045308 - CENTRO MATERNO INFANTIL LA MATA"
+  },
+  {
+    "code": "203830045307",
+    "name": "CENTRO MATERNO INFANTIL SIMAÑA",
+    "department": "Cesar",
+    "municipality": "LA GLORIA",
+    "source": "publicas",
+    "label": "203830045307 - CENTRO MATERNO INFANTIL SIMAÑA"
+  },
+  {
+    "code": "203830045301",
+    "name": "HOSPITAL SAN JOSE ESE",
+    "department": "Cesar",
+    "municipality": "LA GLORIA",
+    "source": "publicas",
+    "label": "203830045301 - HOSPITAL SAN JOSE ESE"
+  },
+  {
+    "code": "203830045304",
+    "name": "PUESTO DE SALUD AYACUCHO",
+    "department": "Cesar",
+    "municipality": "LA GLORIA",
+    "source": "publicas",
+    "label": "203830045304 - PUESTO DE SALUD AYACUCHO"
+  },
+  {
+    "code": "204000211602",
+    "name": "AMORSALUD I.P.S. - SEDE LA JAGUA",
+    "department": "Cesar",
+    "municipality": "LA JAGUA DE IBIRICO",
+    "source": "privadas",
+    "label": "204000211602 - AMORSALUD I.P.S. - SEDE LA JAGUA"
+  },
+  {
+    "code": "204000288901",
+    "name": "ANAS PSIQUIS IPS SAS",
+    "department": "Cesar",
+    "municipality": "LA JAGUA DE IBIRICO",
+    "source": "privadas",
+    "label": "204000288901 - ANAS PSIQUIS IPS SAS"
+  },
+  {
+    "code": "204000149301",
+    "name": "APREHSI MP",
+    "department": "Cesar",
+    "municipality": "LA JAGUA DE IBIRICO",
+    "source": "privadas",
+    "label": "204000149301 - APREHSI MP"
+  },
+  {
+    "code": "204000041903",
+    "name": "carbosalud la jagua",
+    "department": "Cesar",
+    "municipality": "LA JAGUA DE IBIRICO",
+    "source": "privadas",
+    "label": "204000041903 - carbosalud la jagua"
+  },
+  {
+    "code": "204000041901",
+    "name": "CARBOSALUD S.A.S",
+    "department": "Cesar",
+    "municipality": "LA JAGUA DE IBIRICO",
+    "source": "privadas",
+    "label": "204000041901 - CARBOSALUD S.A.S"
+  },
+  {
+    "code": "204000264201",
+    "name": "CENTRO DE REHABILITACION INTEGRAL DANIEL' S S.A.S",
+    "department": "Cesar",
+    "municipality": "LA JAGUA DE IBIRICO",
+    "source": "privadas",
+    "label": "204000264201 - CENTRO DE REHABILITACION INTEGRAL DANIEL' S S.A.S"
+  },
+  {
+    "code": "204000067001",
+    "name": "HOSPITAL JORGE ISAAC RINCON TORRES",
+    "department": "Cesar",
+    "municipality": "LA JAGUA DE IBIRICO",
+    "source": "publicas",
+    "label": "204000067001 - HOSPITAL JORGE ISAAC RINCON TORRES"
+  },
+  {
+    "code": "204000077903",
+    "name": "IMAGEN RADIOLOGICA DIAGNOSTICA S.A.S.",
+    "department": "Cesar",
+    "municipality": "LA JAGUA DE IBIRICO",
+    "source": "privadas",
+    "label": "204000077903 - IMAGEN RADIOLOGICA DIAGNOSTICA S.A.S."
+  },
+  {
+    "code": "204000139614",
+    "name": "LABORATORIO CLINICO CRISTIAM GRAM SEDE JAGUA DE IBIRICO",
+    "department": "Cesar",
+    "municipality": "LA JAGUA DE IBIRICO",
+    "source": "privadas",
+    "label": "204000139614 - LABORATORIO CLINICO CRISTIAM GRAM SEDE JAGUA DE IBIRICO"
+  },
+  {
+    "code": "204000187401",
+    "name": "LABORATORIO CLINICO REAHS IPS S.A.S",
+    "department": "Cesar",
+    "municipality": "LA JAGUA DE IBIRICO",
+    "source": "privadas",
+    "label": "204000187401 - LABORATORIO CLINICO REAHS IPS S.A.S"
+  },
+  {
+    "code": "204000092502",
+    "name": "MEDYDONT IPS",
+    "department": "Cesar",
+    "municipality": "LA JAGUA DE IBIRICO",
+    "source": "privadas",
+    "label": "204000092502 - MEDYDONT IPS"
+  },
+  {
+    "code": "204000001805",
+    "name": "ORGANIZACION HUMANA INTEGRAL S.A. SEDE LA JAGUA DE IBIRICO",
+    "department": "Cesar",
+    "municipality": "LA JAGUA DE IBIRICO",
+    "source": "privadas",
+    "label": "204000001805 - ORGANIZACION HUMANA INTEGRAL S.A. SEDE LA JAGUA DE IBIRICO"
+  },
+  {
+    "code": "204000067003",
+    "name": "PUESTO DE SALUD BOQUERON",
+    "department": "Cesar",
+    "municipality": "LA JAGUA DE IBIRICO",
+    "source": "publicas",
+    "label": "204000067003 - PUESTO DE SALUD BOQUERON"
+  },
+  {
+    "code": "204000067002",
+    "name": "PUESTO DE SALUD LA VICTORIA DE SAN ISIDRO",
+    "department": "Cesar",
+    "municipality": "LA JAGUA DE IBIRICO",
+    "source": "publicas",
+    "label": "204000067002 - PUESTO DE SALUD LA VICTORIA DE SAN ISIDRO"
+  },
+  {
+    "code": "204000067004",
+    "name": "PUESTO DE SALUD LAS PALMITAS",
+    "department": "Cesar",
+    "municipality": "LA JAGUA DE IBIRICO",
+    "source": "publicas",
+    "label": "204000067004 - PUESTO DE SALUD LAS PALMITAS"
+  },
+  {
+    "code": "204000097904",
+    "name": "SANTA HELENA DEL VALLE IPS",
+    "department": "Cesar",
+    "municipality": "LA JAGUA DE IBIRICO",
+    "source": "privadas",
+    "label": "204000097904 - SANTA HELENA DEL VALLE IPS"
+  },
+  {
+    "code": "206210058002",
+    "name": "CENTRO DE ATENCION MATERNO INFANTIL SAN JOSE DE ORIENTE",
+    "department": "Cesar",
+    "municipality": "LA PAZ",
+    "source": "publicas",
+    "label": "206210058002 - CENTRO DE ATENCION MATERNO INFANTIL SAN JOSE DE ORIENTE"
+  },
+  {
+    "code": "206210283101",
+    "name": "CONFIAVITAL IPS S.A.S",
+    "department": "Cesar",
+    "municipality": "LA PAZ",
+    "source": "privadas",
+    "label": "206210283101 - CONFIAVITAL IPS S.A.S"
+  },
+  {
+    "code": "206210058004",
+    "name": "CONSULTA EXTERNA HOSPITAL MARINO ZULETA RAMIREZ",
+    "department": "Cesar",
+    "municipality": "LA PAZ",
+    "source": "publicas",
+    "label": "206210058004 - CONSULTA EXTERNA HOSPITAL MARINO ZULETA RAMIREZ"
+  },
+  {
+    "code": "206210001215",
+    "name": "DUSAKAWI IPSI - LA PAZ",
+    "department": "Cesar",
+    "municipality": "LA PAZ",
+    "source": "privadas",
+    "label": "206210001215 - DUSAKAWI IPSI - LA PAZ"
+  },
+  {
+    "code": "206210058001",
+    "name": "HOSPITAL MARINO ZULETA RAMIREZ E.S.E.",
+    "department": "Cesar",
+    "municipality": "LA PAZ",
+    "source": "publicas",
+    "label": "206210058001 - HOSPITAL MARINO ZULETA RAMIREZ E.S.E."
+  },
+  {
+    "code": "206210139622",
+    "name": "LABORATORIO CLINICO CRISTIAM GRAM SEDE LA PAZ",
+    "department": "Cesar",
+    "municipality": "LA PAZ",
+    "source": "privadas",
+    "label": "206210139622 - LABORATORIO CLINICO CRISTIAM GRAM SEDE LA PAZ"
+  },
+  {
+    "code": "206210253902",
+    "name": "SC IPS CENTRO MEDICO VITAL LA PAZ DRA MARYURIS POLO CAMACHO",
+    "department": "Cesar",
+    "municipality": "LA PAZ",
+    "source": "privadas",
+    "label": "206210253902 - SC IPS CENTRO MEDICO VITAL LA PAZ DRA MARYURIS POLO CAMACHO"
+  },
+  {
+    "code": "204430212801",
+    "name": "GENESIS LABORATORIO CLINICO S.A.S",
+    "department": "Cesar",
+    "municipality": "MANAURE",
+    "source": "privadas",
+    "label": "204430212801 - GENESIS LABORATORIO CLINICO S.A.S"
+  },
+  {
+    "code": "204430008401",
+    "name": "HOSPITAL JOSE ANTONIO SOCARRAS",
+    "department": "Cesar",
+    "municipality": "MANAURE",
+    "source": "publicas",
+    "label": "204430008401 - HOSPITAL JOSE ANTONIO SOCARRAS"
+  },
+  {
+    "code": "205170167807",
+    "name": "CENTRO DE REHABILITACION INTEGRAL NUEVO AMANECER - PAILITAS",
+    "department": "Cesar",
+    "municipality": "PAILITAS",
+    "source": "privadas",
+    "label": "205170167807 - CENTRO DE REHABILITACION INTEGRAL NUEVO AMANECER - PAILITAS"
+  },
+  {
+    "code": "205170051801",
+    "name": "HOSPITAL HELI MORENO BLANCO E.S.E",
+    "department": "Cesar",
+    "municipality": "PAILITAS",
+    "source": "publicas",
+    "label": "205170051801 - HOSPITAL HELI MORENO BLANCO E.S.E"
+  },
+  {
+    "code": "205170287901",
+    "name": "LA ESPERANZA PAILITAS",
+    "department": "Cesar",
+    "municipality": "PAILITAS",
+    "source": "privadas",
+    "label": "205170287901 - LA ESPERANZA PAILITAS"
+  },
+  {
+    "code": "205170051802",
+    "name": "PUESTO DE SALUD CORREGIMIENTO EL BURRO",
+    "department": "Cesar",
+    "municipality": "PAILITAS",
+    "source": "publicas",
+    "label": "205170051802 - PUESTO DE SALUD CORREGIMIENTO EL BURRO"
+  },
+  {
+    "code": "205170051804",
+    "name": "PUESTO DE SALUD CORREGIMIENTO PALESTINA",
+    "department": "Cesar",
+    "municipality": "PAILITAS",
+    "source": "publicas",
+    "label": "205170051804 - PUESTO DE SALUD CORREGIMIENTO PALESTINA"
+  },
+  {
+    "code": "205170051803",
+    "name": "PUESTO DE SALUD CORREGIMIENTO RIVERA",
+    "department": "Cesar",
+    "municipality": "PAILITAS",
+    "source": "publicas",
+    "label": "205170051803 - PUESTO DE SALUD CORREGIMIENTO RIVERA"
+  },
+  {
+    "code": "205500021301",
+    "name": "HOSPITAL FRANCISCO CANOSSA",
+    "department": "Cesar",
+    "municipality": "PELAYA",
+    "source": "publicas",
+    "label": "205500021301 - HOSPITAL FRANCISCO CANOSSA"
+  },
+  {
+    "code": "205500116103",
+    "name": "IPS PELAYA",
+    "department": "Cesar",
+    "municipality": "PELAYA",
+    "source": "privadas",
+    "label": "205500116103 - IPS PELAYA"
+  },
+  {
+    "code": "205500021302",
+    "name": "PUESTO DE SALUD DE COSTILLA",
+    "department": "Cesar",
+    "municipality": "PELAYA",
+    "source": "publicas",
+    "label": "205500021302 - PUESTO DE SALUD DE COSTILLA"
+  },
+  {
+    "code": "205500021305",
+    "name": "PUESTO DE SALUD DE SAN BERNARDO",
+    "department": "Cesar",
+    "municipality": "PELAYA",
+    "source": "publicas",
+    "label": "205500021305 - PUESTO DE SALUD DE SAN BERNARDO"
+  },
+  {
+    "code": "205700098319",
+    "name": "CENTRO BIOCULTURAL NUSINKA NUGUEY",
+    "department": "Cesar",
+    "municipality": "PUEBLO BELLO",
+    "source": "privadas",
+    "label": "205700098319 - CENTRO BIOCULTURAL NUSINKA NUGUEY"
+  },
+  {
+    "code": "205700098305",
+    "name": "CENTRO DE SALUD PUEBLO BELLO",
+    "department": "Cesar",
+    "municipality": "PUEBLO BELLO",
+    "source": "privadas",
+    "label": "205700098305 - CENTRO DE SALUD PUEBLO BELLO"
+  },
+  {
+    "code": "205700255102",
+    "name": "CLINICA INTEGRAL SAN JORGE IPS 2",
+    "department": "Cesar",
+    "municipality": "PUEBLO BELLO",
+    "source": "privadas",
+    "label": "205700255102 - CLINICA INTEGRAL SAN JORGE IPS 2"
+  },
+  {
+    "code": "205700255101",
+    "name": "CLINICA INTEGRAL SAN JORGE IPS S.A.S",
+    "department": "Cesar",
+    "municipality": "PUEBLO BELLO",
+    "source": "privadas",
+    "label": "205700255101 - CLINICA INTEGRAL SAN JORGE IPS S.A.S"
+  },
+  {
+    "code": "205700023601",
+    "name": "HOSPITAL CAMILO VILLAZÓN PUMAREJO",
+    "department": "Cesar",
+    "municipality": "PUEBLO BELLO",
+    "source": "publicas",
+    "label": "205700023601 - HOSPITAL CAMILO VILLAZÓN PUMAREJO"
+  },
+  {
+    "code": "205700023602",
+    "name": "PUESTO DE SALUD JOAQUIN RODRIGUEZ DIAZ",
+    "department": "Cesar",
+    "municipality": "PUEBLO BELLO",
+    "source": "publicas",
+    "label": "205700023602 - PUESTO DE SALUD JOAQUIN RODRIGUEZ DIAZ"
+  },
+  {
+    "code": "206140133205",
+    "name": "APREHSI GROUP SEDE RIO DE ORO",
+    "department": "Cesar",
+    "municipality": "RÍO DE ORO",
+    "source": "privadas",
+    "label": "206140133205 - APREHSI GROUP SEDE RIO DE ORO"
+  },
+  {
+    "code": "206140276301",
+    "name": "CENTRO DE ATENCION MI RENACER SAS",
+    "department": "Cesar",
+    "municipality": "RÍO DE ORO",
+    "source": "privadas",
+    "label": "206140276301 - CENTRO DE ATENCION MI RENACER SAS"
+  },
+  {
+    "code": "206140032801",
+    "name": "E.S.E HOSPITAL LOCAL DE RIO DE ORO",
+    "department": "Cesar",
+    "municipality": "RÍO DE ORO",
+    "source": "publicas",
+    "label": "206140032801 - E.S.E HOSPITAL LOCAL DE RIO DE ORO"
+  },
+  {
+    "code": "206140032805",
+    "name": "PUESTO DE MORRINSON",
+    "department": "Cesar",
+    "municipality": "RÍO DE ORO",
+    "source": "publicas",
+    "label": "206140032805 - PUESTO DE MORRINSON"
+  },
+  {
+    "code": "206140032804",
+    "name": "PUESTO DE SALUD DE MONTECITOS",
+    "department": "Cesar",
+    "municipality": "RÍO DE ORO",
+    "source": "publicas",
+    "label": "206140032804 - PUESTO DE SALUD DE MONTECITOS"
+  },
+  {
+    "code": "206140032802",
+    "name": "PUESTO DE SALUD DEL MARQUEZ",
+    "department": "Cesar",
+    "municipality": "RÍO DE ORO",
+    "source": "publicas",
+    "label": "206140032802 - PUESTO DE SALUD DEL MARQUEZ"
+  },
+  {
+    "code": "206140032803",
+    "name": "PUESTO DE SALUD LOS ANGELES",
+    "department": "Cesar",
+    "municipality": "RÍO DE ORO",
+    "source": "publicas",
+    "label": "206140032803 - PUESTO DE SALUD LOS ANGELES"
+  },
+  {
+    "code": "206140226601",
+    "name": "REHABILITAR CON AMOR IPS SAS",
+    "department": "Cesar",
+    "municipality": "RÍO DE ORO",
+    "source": "privadas",
+    "label": "206140226601 - REHABILITAR CON AMOR IPS SAS"
+  },
+  {
+    "code": "207100164801",
+    "name": "Centro de rehabilitación Integral Cenfisem limitada",
+    "department": "Cesar",
+    "municipality": "SAN ALBERTO",
+    "source": "privadas",
+    "label": "207100164801 - Centro de rehabilitación Integral Cenfisem limitada"
+  },
+  {
+    "code": "207100000501",
+    "name": "HOSPITAL LOCAL LAZARO ALFONSO HERNANDEZ LARA",
+    "department": "Cesar",
+    "municipality": "SAN ALBERTO",
+    "source": "publicas",
+    "label": "207100000501 - HOSPITAL LOCAL LAZARO ALFONSO HERNANDEZ LARA"
+  },
+  {
+    "code": "207100184102",
+    "name": "IPS MI SALUD EN CASA SAS SAN ALBERTO",
+    "department": "Cesar",
+    "municipality": "SAN ALBERTO",
+    "source": "privadas",
+    "label": "207100184102 - IPS MI SALUD EN CASA SAS SAN ALBERTO"
+  },
+  {
+    "code": "207100116104",
+    "name": "IPS SAN ALBERTO",
+    "department": "Cesar",
+    "municipality": "SAN ALBERTO",
+    "source": "privadas",
+    "label": "207100116104 - IPS SAN ALBERTO"
+  },
+  {
+    "code": "207100000508",
+    "name": "PUESTO DE SALUD EL LIBANO",
+    "department": "Cesar",
+    "municipality": "SAN ALBERTO",
+    "source": "publicas",
+    "label": "207100000508 - PUESTO DE SALUD EL LIBANO"
+  },
+  {
+    "code": "207100000509",
+    "name": "PUESTO DE SALUD LA LLANA",
+    "department": "Cesar",
+    "municipality": "SAN ALBERTO",
+    "source": "publicas",
+    "label": "207100000509 - PUESTO DE SALUD LA LLANA"
+  },
+  {
+    "code": "207100000506",
+    "name": "PUESTO DE SALUD LA PALMA",
+    "department": "Cesar",
+    "municipality": "SAN ALBERTO",
+    "source": "publicas",
+    "label": "207100000506 - PUESTO DE SALUD LA PALMA"
+  },
+  {
+    "code": "207100000507",
+    "name": "PUESTO DE SALUD PUERTO CARREÑO",
+    "department": "Cesar",
+    "municipality": "SAN ALBERTO",
+    "source": "publicas",
+    "label": "207100000507 - PUESTO DE SALUD PUERTO CARREÑO"
+  },
+  {
+    "code": "207100194601",
+    "name": "REDINSALUD IPS SAN ALBERTO",
+    "department": "Cesar",
+    "municipality": "SAN ALBERTO",
+    "source": "privadas",
+    "label": "207100194601 - REDINSALUD IPS SAN ALBERTO"
+  },
+  {
+    "code": "207100001002",
+    "name": "SANTA SALUD IPS LTDA",
+    "department": "Cesar",
+    "municipality": "SAN ALBERTO",
+    "source": "privadas",
+    "label": "207100001002 - SANTA SALUD IPS LTDA"
+  },
+  {
+    "code": "207100190301",
+    "name": "SERVIMEDISST SAS",
+    "department": "Cesar",
+    "municipality": "SAN ALBERTO",
+    "source": "privadas",
+    "label": "207100190301 - SERVIMEDISST SAS"
+  },
+  {
+    "code": "207100164802",
+    "name": "UNIDAD RADIOLOGICA CENFISEM",
+    "department": "Cesar",
+    "municipality": "SAN ALBERTO",
+    "source": "privadas",
+    "label": "207100164802 - UNIDAD RADIOLOGICA CENFISEM"
+  },
+  {
+    "code": "207500045002",
+    "name": "CENTRO DE SALUD CORREGIMIENTO MEDIA LUNA",
+    "department": "Cesar",
+    "municipality": "SAN DIEGO",
+    "source": "publicas",
+    "label": "207500045002 - CENTRO DE SALUD CORREGIMIENTO MEDIA LUNA"
+  },
+  {
+    "code": "207500045001",
+    "name": "EMPRESA SOCIAL DEL ESTADO HOSPITAL EL SOCORRO",
+    "department": "Cesar",
+    "municipality": "SAN DIEGO",
+    "source": "publicas",
+    "label": "207500045001 - EMPRESA SOCIAL DEL ESTADO HOSPITAL EL SOCORRO"
+  },
+  {
+    "code": "207500212802",
+    "name": "GÉNESIS LABORATORIO CLÍNICO S.A.S",
+    "department": "Cesar",
+    "municipality": "SAN DIEGO",
+    "source": "privadas",
+    "label": "207500212802 - GÉNESIS LABORATORIO CLÍNICO S.A.S"
+  },
+  {
+    "code": "207500045008",
+    "name": "PUESTO DE SALUD EL RINCON",
+    "department": "Cesar",
+    "municipality": "SAN DIEGO",
+    "source": "publicas",
+    "label": "207500045008 - PUESTO DE SALUD EL RINCON"
+  },
+  {
+    "code": "207500045005",
+    "name": "PUESTO DE SALUD LAS PITILLAS",
+    "department": "Cesar",
+    "municipality": "SAN DIEGO",
+    "source": "publicas",
+    "label": "207500045005 - PUESTO DE SALUD LAS PITILLAS"
+  },
+  {
+    "code": "207500045006",
+    "name": "PUESTO DE SALUD LOS BRASILES",
+    "department": "Cesar",
+    "municipality": "SAN DIEGO",
+    "source": "publicas",
+    "label": "207500045006 - PUESTO DE SALUD LOS BRASILES"
+  },
+  {
+    "code": "207500045003",
+    "name": "PUESTO DE SALUD LOS TUPEZ",
+    "department": "Cesar",
+    "municipality": "SAN DIEGO",
+    "source": "publicas",
+    "label": "207500045003 - PUESTO DE SALUD LOS TUPEZ"
+  },
+  {
+    "code": "207500045007",
+    "name": "PUESTO DE SALUD NUEVA FLORES",
+    "department": "Cesar",
+    "municipality": "SAN DIEGO",
+    "source": "publicas",
+    "label": "207500045007 - PUESTO DE SALUD NUEVA FLORES"
+  },
+  {
+    "code": "207500045004",
+    "name": "PUESTO DE SALUD TOCAIMO",
+    "department": "Cesar",
+    "municipality": "SAN DIEGO",
+    "source": "publicas",
+    "label": "207500045004 - PUESTO DE SALUD TOCAIMO"
+  },
+  {
+    "code": "207700009401",
+    "name": "HOSPITAL LOCAL ALVARO RAMIREZ GONZALEZ E.S.E",
+    "department": "Cesar",
+    "municipality": "SAN MARTÍN",
+    "source": "publicas",
+    "label": "207700009401 - HOSPITAL LOCAL ALVARO RAMIREZ GONZALEZ E.S.E"
+  },
+  {
+    "code": "207700273301",
+    "name": "IPS INTEGRAL REHABILITACION, NEURODESARROLLO Y APRENDIZAJE SAS",
+    "department": "Cesar",
+    "municipality": "SAN MARTÍN",
+    "source": "privadas",
+    "label": "207700273301 - IPS INTEGRAL REHABILITACION, NEURODESARROLLO Y APRENDIZAJE SAS"
+  },
+  {
+    "code": "207700267601",
+    "name": "IPS SERVISALUD JM SAS",
+    "department": "Cesar",
+    "municipality": "SAN MARTÍN",
+    "source": "privadas",
+    "label": "207700267601 - IPS SERVISALUD JM SAS"
+  },
+  {
+    "code": "207700009425",
+    "name": "PUESTO DE SALUD AGUAS BLANCAS",
+    "department": "Cesar",
+    "municipality": "SAN MARTÍN",
+    "source": "publicas",
+    "label": "207700009425 - PUESTO DE SALUD AGUAS BLANCAS"
+  },
+  {
+    "code": "207700009428",
+    "name": "PUESTO DE SALUD LOS BAGRES",
+    "department": "Cesar",
+    "municipality": "SAN MARTÍN",
+    "source": "publicas",
+    "label": "207700009428 - PUESTO DE SALUD LOS BAGRES"
+  },
+  {
+    "code": "207700009414",
+    "name": "PUESTO DE SALUD PITA LIMON",
+    "department": "Cesar",
+    "municipality": "SAN MARTÍN",
+    "source": "publicas",
+    "label": "207700009414 - PUESTO DE SALUD PITA LIMON"
+  },
+  {
+    "code": "207700009413",
+    "name": "PUESTO DE SALUD PUERTO OCULTO",
+    "department": "Cesar",
+    "municipality": "SAN MARTÍN",
+    "source": "publicas",
+    "label": "207700009413 - PUESTO DE SALUD PUERTO OCULTO"
+  },
+  {
+    "code": "207700009426",
+    "name": "PUESTO DE SALUD SAN JOSE",
+    "department": "Cesar",
+    "municipality": "SAN MARTÍN",
+    "source": "publicas",
+    "label": "207700009426 - PUESTO DE SALUD SAN JOSE"
+  },
+  {
+    "code": "207700009427",
+    "name": "PUESTO DE SALUD TERRAPLEN",
+    "department": "Cesar",
+    "municipality": "SAN MARTÍN",
+    "source": "publicas",
+    "label": "207700009427 - PUESTO DE SALUD TERRAPLEN"
+  },
+  {
+    "code": "207700116101",
+    "name": "UNIDAD BASICA DE ATENCION PROSANAR LTDA.",
+    "department": "Cesar",
+    "municipality": "SAN MARTÍN",
+    "source": "privadas",
+    "label": "207700116101 - UNIDAD BASICA DE ATENCION PROSANAR LTDA."
+  },
+  {
+    "code": "207700191401",
+    "name": "VITALSAN I.P.S.",
+    "department": "Cesar",
+    "municipality": "SAN MARTÍN",
+    "source": "privadas",
+    "label": "207700191401 - VITALSAN I.P.S."
+  },
+  {
+    "code": "207870028901",
+    "name": "ESE HOSPITAL TAMALAMEQUE",
+    "department": "Cesar",
+    "municipality": "TAMALAMEQUE",
+    "source": "publicas",
+    "label": "207870028901 - ESE HOSPITAL TAMALAMEQUE"
+  },
+  {
+    "code": "207870268701",
+    "name": "MARIANGEL IPS SAS",
+    "department": "Cesar",
+    "municipality": "TAMALAMEQUE",
+    "source": "privadas",
+    "label": "207870268701 - MARIANGEL IPS SAS"
+  },
+  {
+    "code": "207870028909",
+    "name": "PUESTO DE SALUD LAS PALMAS",
+    "department": "Cesar",
+    "municipality": "TAMALAMEQUE",
+    "source": "publicas",
+    "label": "207870028909 - PUESTO DE SALUD LAS PALMAS"
+  },
+  {
+    "code": "207870028908",
+    "name": "PUESTO DE SALUD PALESTINA",
+    "department": "Cesar",
+    "municipality": "TAMALAMEQUE",
+    "source": "publicas",
+    "label": "207870028908 - PUESTO DE SALUD PALESTINA"
+  },
+  {
+    "code": "207870028906",
+    "name": "PUESTO DE SALUD PASACORRIENDO",
+    "department": "Cesar",
+    "municipality": "TAMALAMEQUE",
+    "source": "publicas",
+    "label": "207870028906 - PUESTO DE SALUD PASACORRIENDO"
+  },
+  {
+    "code": "207870028911",
+    "name": "PUESTO DE SALUD PUEBLO NUEVO",
+    "department": "Cesar",
+    "municipality": "TAMALAMEQUE",
+    "source": "publicas",
+    "label": "207870028911 - PUESTO DE SALUD PUEBLO NUEVO"
+  },
+  {
+    "code": "207870028902",
+    "name": "PUESTO DE SALUD PUERTO BOCA",
+    "department": "Cesar",
+    "municipality": "TAMALAMEQUE",
+    "source": "publicas",
+    "label": "207870028902 - PUESTO DE SALUD PUERTO BOCA"
+  },
+  {
+    "code": "207870028912",
+    "name": "PUESTO DE SALUD ZAPATOSA",
+    "department": "Cesar",
+    "municipality": "TAMALAMEQUE",
+    "source": "publicas",
+    "label": "207870028912 - PUESTO DE SALUD ZAPATOSA"
+  },
+  {
     "code": "200010280201",
     "name": "+ VIDA IPS",
     "department": "Cesar",
