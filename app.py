@@ -50,6 +50,7 @@ DATA_DIR = Path(
 SCHEMA_PATH = ROOT / "data" / "schema.json"
 DIVIPOLA_PATH = ROOT / "data" / "divipola.json"
 HABILITACIONES_PATH = ROOT / "data" / "habilitaciones.json"
+SERVICIOS_SER_PATH = ROOT / "data" / "servicios_ser.json"
 STATIC_DIR = ROOT / "static"
 TEMPLATE_DIR = ROOT / "templates"
 EXPORT_DIR = Path(os.environ.get("ADRES_EXPORT_DIR", DATA_DIR / "exports"))
@@ -121,11 +122,20 @@ def load_habilitaciones() -> list[dict]:
     return sorted(items, key=lambda item: item["code"])
 
 
+def load_servicios_ser() -> list[dict]:
+    if not SERVICIOS_SER_PATH.exists():
+        return []
+    with SERVICIOS_SER_PATH.open("r", encoding="utf-8") as fh:
+        items = json.load(fh)
+    return sorted(items, key=lambda item: (item.get("kind", ""), item.get("description", "")))
+
+
 SCHEMA = load_schema()
 DIVIPOLA_ITEMS = load_divipola()
 DIVIPOLA_CODES = {item["code"] for item in DIVIPOLA_ITEMS}
 HABILITACIONES_ITEMS = load_habilitaciones()
 HABILITACIONES_CODES = {item["code"] for item in HABILITACIONES_ITEMS}
+SERVICIOS_SER_ITEMS = load_servicios_ser()
 
 
 def now_iso() -> str:
@@ -1300,6 +1310,9 @@ class AppHandler(BaseHTTPRequestHandler):
             return
         if path == "/api/habilitaciones":
             self.send_json({"items": HABILITACIONES_ITEMS})
+            return
+        if path == "/api/servicios-ser":
+            self.send_json({"items": SERVICIOS_SER_ITEMS})
             return
         if path == "/api/health":
             ensure_db()

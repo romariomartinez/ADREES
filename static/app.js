@@ -8,6 +8,7 @@ let divipolaItems = [];
 let divipolaCodes = new Set();
 let habilitacionItems = [];
 let habilitacionCodes = new Set();
+let servicioSerItems = [];
 let pendingTabFocus = null;
 const activeDraftId = {
   fur: null,
@@ -44,6 +45,10 @@ const HABILITACION_FIELD_NAMES = new Set([
   "Codigo_de_habilitacion_del_prestador_que_recibe",
   "Codigo_de_habilitacion_del_prestador_que_recibe_transporte_primario"
 ]);
+const SER_SERVICE_DESCRIPTION_FIELD = "Descripcion_del_servicio_o_elemento_reclamado";
+const SER_SERVICE_CODE_FIELD = "Codigo_del_servicio";
+const SER_CUPS_FIELD = "Codificacion_CUPS";
+const SER_SERVICE_TYPE_FIELD = "Tipo_de_servicio";
 const FREQUENT_FIELD_NAMES = new Set([
   "NIT_PRESTADOR",
   "Codigo_municipio_residencia_victima",
@@ -86,16 +91,18 @@ document.addEventListener("DOMContentLoaded", init);
 async function init() {
   restoreState();
   try {
-    const [schemaResponse, sessionResponse, divipolaResponse, habilitacionesResponse] = await Promise.all([
+    const [schemaResponse, sessionResponse, divipolaResponse, habilitacionesResponse, serviciosSerResponse] = await Promise.all([
       fetch("/api/schema"),
       fetch("/api/session"),
       fetch("/api/divipola"),
-      fetch("/api/habilitaciones")
+      fetch("/api/habilitaciones"),
+      fetch("/api/servicios-ser")
     ]);
     schema = await readJsonResponse(schemaResponse, { throwOnError: true });
     const session = await readJsonResponse(sessionResponse, { throwOnError: true });
     const divipola = await readJsonResponse(divipolaResponse, { throwOnError: true });
     const habilitaciones = await readJsonResponse(habilitacionesResponse, { throwOnError: true });
+    const serviciosSer = await readJsonResponse(serviciosSerResponse, { throwOnError: true });
     divipolaItems = (divipola.items || []).map((item) => ({
       ...item,
       searchText: normalizeSearch(`${item.code} ${item.municipality} ${item.department} ${item.departmentCode} ${item.label}`)
@@ -106,6 +113,10 @@ async function init() {
       searchText: normalizeSearch(`${item.code} ${item.name} ${item.department} ${item.municipality} ${item.source} ${item.label}`)
     }));
     habilitacionCodes = new Set(habilitacionItems.map((item) => item.code));
+    servicioSerItems = (serviciosSer.items || []).map((item) => ({
+      ...item,
+      searchText: normalizeSearch(`${item.description} ${item.serviceCode} ${item.cups} ${item.soat} ${item.cums} ${item.kind} ${item.label}`)
+    }));
     currentUser = session.user;
     setupRequired = Boolean(session.setupRequired);
     authMode = setupRequired ? "setup" : "login";
@@ -1065,6 +1076,8 @@ function renderField(field, row, rowNumber, templateId) {
     setupDivipolaControl(control, controlWrap);
   } else if (HABILITACION_FIELD_NAMES.has(field.name) && control.tagName === "INPUT") {
     setupHabilitacionControl(control, controlWrap);
+  } else if (templateId === "ser" && field.name === SER_SERVICE_DESCRIPTION_FIELD && control.tagName === "TEXTAREA") {
+    setupServicioSerControl(control, controlWrap);
   } else if (FREQUENT_FIELD_NAMES.has(field.name) && control.tagName === "INPUT") {
     const list = document.createElement("datalist");
     list.id = `list-${templateId}-${rowNumber}-${field.name}`;
@@ -1384,6 +1397,91 @@ function onHabilitacionBlur(event) {
     control.value = normalizeHabilitacionValue(control.value);
     commitControl(control, focusTarget);
   }, 120);
+}
+
+function setupServicioSerControl(control, controlWrap) {
+  controlWrap.classList.add("divipola-control");
+  control.classList.add("servicio-ser-input");
+  control.placeholder = "Buscar medicamento, procedimiento, CUMS, CUPS o SOAT";
+  const panel = document.createElement("div");
+  panel.className = "divipola-results servicio-ser-results";
+  panel.hidden = true;
+  controlWrap.append(panel);
+
+  const hide = () => {
+    panel.hidden = true;
+    panel.replaceChildren();
+  };
+
+  const choose = (item) => {
+    const rowNumber = Number(control.dataset.row);
+    const row = state.ser[rowNumber - 1] || {};
+    row[SER_SERVICE_DESCRIPTION_FIELD] = item.description || "";
+    row[SER_SERVICE_CODE_FIELD] = item.serviceCode || item.cums || item.soat || item.cups || "";
+    row[SER_CUPS_FIELD] = item.cups || "";
+    row[SER_SERVICE_TYPE_FIELD] = item.serviceType || row[SER_SERVICE_TYPE_FIELD] || "";
+    state.ser[rowNumber - 1] = row;
+    normalizeAll();
+    saveState();
+    hide();
+    renderPreservingScroll({
+      focusTarget: {
+        template: "ser",
+        row: String(rowNumber),
+        field: "Cantidad_de_servicios"
+      }
+    });
+  };
+
+  const renderResults = () => {
+    const query = clean(control.value);
+    const matches = filterServicioSer(query);
+    panel.replaceChildren();
+    if (!matches.length) {
+      const empty = document.createElement("div");
+      empty.className = "divipola-empty";
+      empty.textContent = query.length < 2 ? "Escribe al menos 2 caracteres" : "Sin resultados";
+      panel.append(empty);
+      panel.hidden = false;
+      return;
+    }
+    matches.forEach((item) => {
+      const button = document.createElement("button");
+      const codes = [
+        item.cums ? `CUMS ${item.cums}` : "",
+        item.cups ? `CUPS ${item.cups}` : "",
+        item.soat ? `SOAT ${item.soat}` : ""
+      ].filter(Boolean).join(" - ");
+      button.type = "button";
+      button.className = "divipola-option servicio-ser-option";
+      button.innerHTML = `
+        <strong>${escapeHtml(item.description || "Servicio sin descripcion")}</strong>
+        <span>${escapeHtml(`${serviceKindLabel(item.kind)}${codes ? ` - ${codes}` : ""}`)}</span>
+      `;
+      button.addEventListener("mousedown", (event) => event.preventDefault());
+      button.addEventListener("click", () => choose(item));
+      panel.append(button);
+    });
+    panel.hidden = false;
+  };
+
+  control.addEventListener("focus", renderResults);
+  control.addEventListener("input", renderResults);
+  control.addEventListener("blur", () => window.setTimeout(hide, 160));
+}
+
+function filterServicioSer(query) {
+  const term = normalizeSearch(query);
+  if (term.length < 2) return [];
+  return servicioSerItems
+    .filter((item) => item.searchText.includes(term))
+    .slice(0, 45);
+}
+
+function serviceKindLabel(kind) {
+  if (kind === "medicamento") return "Medicamento";
+  if (kind === "procedimiento") return "Procedimiento";
+  return "Servicio";
 }
 
 function onControlInput(event) {
