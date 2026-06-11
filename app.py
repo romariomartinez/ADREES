@@ -360,6 +360,31 @@ def init_db():
             )
             """
         )
+        conn.execute(
+            f"""
+            CREATE TABLE IF NOT EXISTS service_overrides (
+                id {id_type} {primary_key},
+                service_type TEXT NOT NULL,
+                description TEXT NOT NULL,
+                kind TEXT NOT NULL,
+                service_code TEXT NOT NULL DEFAULT '',
+                cups TEXT NOT NULL DEFAULT '',
+                soat TEXT NOT NULL DEFAULT '',
+                cums TEXT NOT NULL DEFAULT '',
+                updated_by {user_id_type} NOT NULL,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                UNIQUE(service_type, description),
+                FOREIGN KEY(updated_by) REFERENCES users(id)
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_service_overrides_key
+            ON service_overrides(service_type, description)
+            """
+        )
 
 def hash_password(password: str, salt: bytes | None = None) -> tuple[str, str]:
     salt = salt or secrets.token_bytes(16)
@@ -954,14 +979,175 @@ def get_fields(template_id: str) -> list[dict]:
 
 SER_NO_CODE_KEYS_CACHE: set[str] | None = None
 SER_NO_CUPS_KEYS_CACHE: set[str] | None = None
+SERVICE_TYPE_LABELS = {
+    "1": ("medicamento", "MEDICAMENTO"),
+    "2": ("procedimiento", "PROCEDIMIENTO"),
+    "3": ("transporte_primario", "TRANSPORTE PRIMARIO"),
+    "4": ("transporte_secundario", "TRANSPORTE SECUNDARIO"),
+    "5": ("insumo", "INSUMO"),
+    "6": ("dispositivo_medico", "DISPOSITIVO MEDICO"),
+    "7": ("material_osteosintesis", "MATERIAL DE OSTEOSINTESIS"),
+    "8": ("procedimiento_no_incluido", "PROCEDIMIENTO NO INCLUIDO"),
+}
 
 
 def ser_catalog_key(description: str, service_type: str) -> str:
     return f"{clean(service_type)}|{clean(description).casefold()}"
 
 
+def ser_kind_from_type(service_type: str, fallback: str = "servicio") -> str:
+    return SERVICE_TYPE_LABELS.get(clean(service_type), (fallback, "SERVICIO"))[0]
+
+
+def ser_prefix_from_type(service_type: str) -> str:
+    return SERVICE_TYPE_LABELS.get(clean(service_type), ("servicio", "SERVICIO"))[1]
+
+
 def ser_item_has_any_code(item: dict) -> bool:
     return any(clean(item.get(key)) for key in ("serviceCode", "cums", "cups", "soat"))
+
+
+def ser_catalog_label(item: dict) -> str:
+    codes = []
+    if clean(item.get("cums")):
+        codes.append(f"CUMS {clean(item.get('cums'))}")
+    if clean(item.get("cups")):
+        codes.append(f"CUPS {clean(item.get('cups'))}")
+    if clean(item.get("soat")):
+        codes.append(f"SOAT {clean(item.get('soat'))}")
+    suffix = f" ({' / '.join(codes)})" if codes else ""
+    return f"{ser_prefix_from_type(item.get('serviceType', ''))} - {clean(item.get('description'))}{suffix}"
+
+
+def normalize_ser_item(item: dict) -> dict:
+    normalized = {
+        "kind": clean(item.get("kind")) or ser_kind_from_type(clean(item.get("serviceType"))),
+        "description": clean(item.get("description"))[:200],
+        "serviceCode": clean(item.get("serviceCode"))[:20],
+        "cups": clean(item.get("cups"))[:6],
+        "soat": clean(item.get("soat"))[:20],
+        "cums": clean(item.get("cums"))[:20],
+        "serviceType": clean(item.get("serviceType")),
+        "source": clean(item.get("source")) or "manual",
+    }
+    normalized["label"] = ser_catalog_label(normalized)
+    return normalized
+
+
+def list_service_overrides() -> list[dict]:
+    with db_connect() as conn:
+        rows = conn.execute(
+            """
+            SELECT service_type, description, kind, service_code, cups, soat, cums, updated_at
+            FROM service_overrides
+            ORDER BY updated_at DESC
+            """
+        ).fetchall()
+    return [
+        normalize_ser_item(
+            {
+                "serviceType": row["service_type"],
+                "description": row["description"],
+                "kind": row["kind"],
+                "serviceCode": row["service_code"],
+                "cups": row["cups"],
+                "soat": row["soat"],
+                "cums": row["cums"],
+                "source": "manual",
+            }
+        )
+        for row in rows
+    ]
+
+
+def list_servicios_ser() -> list[dict]:
+    merged = {
+        ser_catalog_key(item.get("description", ""), item.get("serviceType", "")): normalize_ser_item(item)
+        for item in SERVICIOS_SER_ITEMS
+    }
+    for item in list_service_overrides():
+        key = ser_catalog_key(item.get("description", ""), item.get("serviceType", ""))
+        if key in merged:
+            merged[key].update(
+                {
+                    "kind": item["kind"],
+                    "serviceCode": item["serviceCode"],
+                    "cups": item["cups"],
+                    "soat": item["soat"],
+                    "cums": item["cums"],
+                    "source": "manual",
+                }
+            )
+            merged[key]["label"] = ser_catalog_label(merged[key])
+        else:
+            merged[key] = item
+    return sorted(merged.values(), key=lambda item: (item.get("kind", ""), item.get("description", "")))
+
+
+def save_service_override(user: dict, payload: dict) -> tuple[dict | None, str | None]:
+    description = clean(payload.get("description"))[:200]
+    service_type = clean(payload.get("serviceType"))
+    if not description:
+        return None, "Falta la descripcion del servicio."
+    if service_type not in SERVICE_TYPE_LABELS:
+        return None, "Tipo de servicio no permitido."
+
+    service_code = clean(payload.get("serviceCode"))[:20]
+    cups = clean(payload.get("cups"))[:6]
+    soat = clean(payload.get("soat"))[:20]
+    cums = clean(payload.get("cums"))[:20]
+    if service_type == "1":
+        cums = cums or service_code
+        service_code = service_code or cums
+    elif service_type == "2":
+        soat = soat or service_code
+        service_code = service_code or soat
+
+    item = normalize_ser_item(
+        {
+            "description": description,
+            "serviceType": service_type,
+            "kind": clean(payload.get("kind")) or ser_kind_from_type(service_type),
+            "serviceCode": service_code,
+            "cups": cups,
+            "soat": soat,
+            "cums": cums,
+            "source": "manual",
+        }
+    )
+    timestamp = now_iso()
+    with db_connect() as conn:
+        conn.execute(
+            """
+            INSERT INTO service_overrides (
+                service_type, description, kind, service_code, cups, soat, cums,
+                updated_by, created_at, updated_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(service_type, description)
+            DO UPDATE SET
+                kind = excluded.kind,
+                service_code = excluded.service_code,
+                cups = excluded.cups,
+                soat = excluded.soat,
+                cums = excluded.cums,
+                updated_by = excluded.updated_by,
+                updated_at = excluded.updated_at
+            """,
+            (
+                item["serviceType"],
+                item["description"],
+                item["kind"],
+                item["serviceCode"],
+                item["cups"],
+                item["soat"],
+                item["cums"],
+                user["id"],
+                timestamp,
+                timestamp,
+            ),
+        )
+    return item, None
 
 
 def ser_no_code_keys() -> set[str]:
@@ -1364,7 +1550,7 @@ class AppHandler(BaseHTTPRequestHandler):
             self.send_json({"items": HABILITACIONES_ITEMS})
             return
         if path == "/api/servicios-ser":
-            self.send_json({"items": SERVICIOS_SER_ITEMS})
+            self.send_json({"items": list_servicios_ser()})
             return
         if path == "/api/health":
             ensure_db()
@@ -1453,6 +1639,22 @@ class AppHandler(BaseHTTPRequestHandler):
         path = unquote(urlparse(self.path).path)
         if path in {"/api/login", "/api/register", "/api/logout"}:
             self.handle_auth(path)
+            return
+
+        if path == "/api/servicios-ser/override":
+            user = self.require_user()
+            if not user:
+                return
+            try:
+                payload = self.read_json()
+            except json.JSONDecodeError:
+                self.send_json({"ok": False, "errors": [{"message": "JSON invalido."}]}, status=400)
+                return
+            item, error = save_service_override(user, payload)
+            if error:
+                self.send_json({"ok": False, "errors": [{"message": error}]}, status=422)
+                return
+            self.send_json({"ok": True, "item": item})
             return
 
         if path.startswith("/api/drafts/"):

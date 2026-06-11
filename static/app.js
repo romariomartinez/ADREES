@@ -11,6 +11,7 @@ let habilitacionCodes = new Set();
 let servicioSerItems = [];
 let servicioSerNoCodeKeys = new Set();
 let servicioSerNoCupsKeys = new Set();
+let servicioSerOverrideTimers = new Map();
 let pendingTabFocus = null;
 const activeDraftId = {
   fur: null,
@@ -51,6 +52,11 @@ const SER_SERVICE_DESCRIPTION_FIELD = "Descripcion_del_servicio_o_elemento_recla
 const SER_SERVICE_CODE_FIELD = "Codigo_del_servicio";
 const SER_CUPS_FIELD = "Codificacion_CUPS";
 const SER_SERVICE_TYPE_FIELD = "Tipo_de_servicio";
+const SER_OVERRIDE_FIELDS = new Set([
+  SER_SERVICE_CODE_FIELD,
+  SER_CUPS_FIELD,
+  SER_SERVICE_TYPE_FIELD
+]);
 const FREQUENT_FIELD_NAMES = new Set([
   "NIT_PRESTADOR",
   "Codigo_municipio_residencia_victima",
@@ -119,16 +125,7 @@ async function init() {
       ...item,
       searchText: normalizeSearch(`${item.description} ${item.serviceCode} ${item.cups} ${item.soat} ${item.cums} ${item.kind} ${item.label}`)
     }));
-    servicioSerNoCodeKeys = new Set(
-      servicioSerItems
-        .filter((item) => !servicioSerHasAnyCode(item))
-        .map((item) => servicioSerKey(item.description, item.serviceType))
-    );
-    servicioSerNoCupsKeys = new Set(
-      servicioSerItems
-        .filter((item) => item.serviceType === "2" && !clean(item.cups))
-        .map((item) => servicioSerKey(item.description, item.serviceType))
-    );
+    rebuildServicioSerIndexes();
     currentUser = session.user;
     setupRequired = Boolean(session.setupRequired);
     authMode = setupRequired ? "setup" : "login";
@@ -1530,6 +1527,100 @@ function serviceKindLabel(kind, serviceType) {
   return "Servicio";
 }
 
+function serviceKindFromType(serviceType, fallback = "servicio") {
+  if (serviceType === "1") return "medicamento";
+  if (serviceType === "2") return "procedimiento";
+  if (serviceType === "3") return "transporte_primario";
+  if (serviceType === "4") return "transporte_secundario";
+  if (serviceType === "5") return "insumo";
+  if (serviceType === "6") return "dispositivo_medico";
+  if (serviceType === "7") return "material_osteosintesis";
+  if (serviceType === "8") return "procedimiento_no_incluido";
+  return fallback;
+}
+
+function findServicioSerItem(description, serviceType) {
+  const key = servicioSerKey(description, serviceType);
+  return servicioSerItems.find((item) => servicioSerKey(item.description, item.serviceType) === key);
+}
+
+function rebuildServicioSerIndexes() {
+  servicioSerNoCodeKeys = new Set(
+    servicioSerItems
+      .filter((item) => !servicioSerHasAnyCode(item))
+      .map((item) => servicioSerKey(item.description, item.serviceType))
+  );
+  servicioSerNoCupsKeys = new Set(
+    servicioSerItems
+      .filter((item) => item.serviceType === "2" && !clean(item.cups))
+      .map((item) => servicioSerKey(item.description, item.serviceType))
+  );
+}
+
+function upsertServicioSerItem(item) {
+  const enriched = {
+    ...item,
+    searchText: normalizeSearch(`${item.description} ${item.serviceCode} ${item.cups} ${item.soat} ${item.cums} ${item.kind} ${item.label}`)
+  };
+  const key = servicioSerKey(enriched.description, enriched.serviceType);
+  const index = servicioSerItems.findIndex((candidate) => servicioSerKey(candidate.description, candidate.serviceType) === key);
+  if (index >= 0) {
+    servicioSerItems[index] = { ...servicioSerItems[index], ...enriched };
+  } else {
+    servicioSerItems.push(enriched);
+  }
+  rebuildServicioSerIndexes();
+}
+
+function maybeSaveServicioSerOverride(control) {
+  if (control.dataset.template !== "ser" || !SER_OVERRIDE_FIELDS.has(control.dataset.field)) return;
+  const row = state.ser[Number(control.dataset.row) - 1] || {};
+  const description = clean(row[SER_SERVICE_DESCRIPTION_FIELD]);
+  const serviceType = clean(row[SER_SERVICE_TYPE_FIELD]);
+  if (!description || !serviceType) return;
+
+  const existing = findServicioSerItem(description, serviceType);
+  const serviceCode = clean(row[SER_SERVICE_CODE_FIELD]);
+  const cups = clean(row[SER_CUPS_FIELD]);
+  const payload = {
+    description,
+    serviceType,
+    kind: existing?.kind || serviceKindFromType(serviceType),
+    serviceCode,
+    cups,
+    soat: existing?.soat || "",
+    cums: existing?.cums || ""
+  };
+  if (serviceType === "1") payload.cums = serviceCode;
+  if (serviceType === "2") payload.soat = serviceCode;
+
+  const sameAsCurrent = existing
+    && clean(existing.serviceCode) === payload.serviceCode
+    && clean(existing.cups) === payload.cups
+    && clean(existing.soat) === payload.soat
+    && clean(existing.cums) === payload.cums
+    && clean(existing.kind) === payload.kind;
+  if (sameAsCurrent) return;
+
+  const key = servicioSerKey(description, serviceType);
+  window.clearTimeout(servicioSerOverrideTimers.get(key));
+  servicioSerOverrideTimers.set(key, window.setTimeout(async () => {
+    try {
+      const response = await fetch("/api/servicios-ser/override", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await readJsonResponse(response);
+      if (!response.ok) throw new Error(data.errors?.[0]?.message || "No se pudo actualizar el catalogo.");
+      upsertServicioSerItem(data.item);
+      showMessage("Codigo actualizado para este servicio.", "ok");
+    } catch (err) {
+      showMessage(err.message, "error");
+    }
+  }, 350));
+}
+
 function onControlInput(event) {
   const control = event.currentTarget;
   updateState(control.dataset.template, Number(control.dataset.row), control.dataset.field, control.value);
@@ -1548,6 +1639,7 @@ function onControlCommit(event) {
 function commitControl(control, focusTarget = null) {
   updateState(control.dataset.template, Number(control.dataset.row), control.dataset.field, control.value);
   normalizeAll();
+  maybeSaveServicioSerOverride(control);
   saveState();
   renderPreservingScroll({ focusTarget });
 }
