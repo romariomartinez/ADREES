@@ -1416,7 +1416,8 @@ function setupServicioSerControl(control, controlWrap) {
   const choose = (item) => {
     const rowNumber = Number(control.dataset.row);
     const row = state.ser[rowNumber - 1] || {};
-    row[SER_SERVICE_DESCRIPTION_FIELD] = item.description || "";
+    control.value = item.description || "";
+    row[SER_SERVICE_DESCRIPTION_FIELD] = control.value;
     row[SER_SERVICE_CODE_FIELD] = item.serviceCode || item.cums || item.soat || item.cups || "";
     row[SER_CUPS_FIELD] = item.cups || "";
     row[SER_SERVICE_TYPE_FIELD] = item.serviceType || row[SER_SERVICE_TYPE_FIELD] || "";
