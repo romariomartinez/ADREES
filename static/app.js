@@ -9,6 +9,8 @@ let divipolaCodes = new Set();
 let habilitacionItems = [];
 let habilitacionCodes = new Set();
 let servicioSerItems = [];
+let servicioSerNoCodeKeys = new Set();
+let servicioSerNoCupsKeys = new Set();
 let pendingTabFocus = null;
 const activeDraftId = {
   fur: null,
@@ -117,6 +119,16 @@ async function init() {
       ...item,
       searchText: normalizeSearch(`${item.description} ${item.serviceCode} ${item.cups} ${item.soat} ${item.cums} ${item.kind} ${item.label}`)
     }));
+    servicioSerNoCodeKeys = new Set(
+      servicioSerItems
+        .filter((item) => !servicioSerHasAnyCode(item))
+        .map((item) => servicioSerKey(item.description, item.serviceType))
+    );
+    servicioSerNoCupsKeys = new Set(
+      servicioSerItems
+        .filter((item) => item.serviceType === "2" && !clean(item.cups))
+        .map((item) => servicioSerKey(item.description, item.serviceType))
+    );
     currentUser = session.user;
     setupRequired = Boolean(session.setupRequired);
     authMode = setupRequired ? "setup" : "login";
@@ -1403,6 +1415,7 @@ function setupServicioSerControl(control, controlWrap) {
   controlWrap.classList.add("divipola-control");
   control.classList.add("servicio-ser-input");
   control.placeholder = "Buscar medicamento, procedimiento, CUMS, CUPS o SOAT";
+  control.removeEventListener("blur", onControlCommit);
   const panel = document.createElement("div");
   panel.className = "divipola-results servicio-ser-results";
   panel.hidden = true;
@@ -1453,14 +1466,21 @@ function setupServicioSerControl(control, controlWrap) {
         item.cups ? `CUPS ${item.cups}` : "",
         item.soat ? `SOAT ${item.soat}` : ""
       ].filter(Boolean).join(" - ");
+      let picked = false;
+      const pick = (event) => {
+        event.preventDefault();
+        if (picked) return;
+        picked = true;
+        choose(item);
+      };
       button.type = "button";
       button.className = "divipola-option servicio-ser-option";
       button.innerHTML = `
         <strong>${escapeHtml(item.description || "Servicio sin descripcion")}</strong>
-        <span>${escapeHtml(`${serviceKindLabel(item.kind)}${codes ? ` - ${codes}` : ""}`)}</span>
+        <span>${escapeHtml(`${serviceKindLabel(item.kind, item.serviceType)}${codes ? ` - ${codes}` : " - sin codigo"}`)}</span>
       `;
-      button.addEventListener("mousedown", (event) => event.preventDefault());
-      button.addEventListener("click", () => choose(item));
+      button.addEventListener("pointerdown", pick);
+      button.addEventListener("click", pick);
       panel.append(button);
     });
     panel.hidden = false;
@@ -1468,7 +1488,11 @@ function setupServicioSerControl(control, controlWrap) {
 
   control.addEventListener("focus", renderResults);
   control.addEventListener("input", renderResults);
-  control.addEventListener("blur", () => window.setTimeout(hide, 160));
+  control.addEventListener("blur", () => {
+    updateState(control.dataset.template, Number(control.dataset.row), control.dataset.field, control.value);
+    saveState();
+    window.setTimeout(hide, 160);
+  });
 }
 
 function filterServicioSer(query) {
@@ -1479,7 +1503,28 @@ function filterServicioSer(query) {
     .slice(0, 45);
 }
 
-function serviceKindLabel(kind) {
+function servicioSerKey(description, serviceType) {
+  return `${clean(serviceType)}|${normalizeSearch(description)}`;
+}
+
+function servicioSerHasAnyCode(item) {
+  return Boolean(clean(item.serviceCode) || clean(item.cums) || clean(item.cups) || clean(item.soat));
+}
+
+function servicioSerAllowsBlankCode(row) {
+  return servicioSerNoCodeKeys.has(servicioSerKey(row[SER_SERVICE_DESCRIPTION_FIELD], row[SER_SERVICE_TYPE_FIELD]));
+}
+
+function servicioSerAllowsBlankCups(row) {
+  return servicioSerNoCupsKeys.has(servicioSerKey(row[SER_SERVICE_DESCRIPTION_FIELD], row[SER_SERVICE_TYPE_FIELD]));
+}
+
+function serviceKindLabel(kind, serviceType) {
+  if (serviceType === "3") return "Transporte primario";
+  if (serviceType === "4") return "Transporte secundario";
+  if (serviceType === "5") return "Insumo";
+  if (serviceType === "6") return "Dispositivo medico";
+  if (serviceType === "7") return "Material de osteosintesis";
   if (kind === "medicamento") return "Medicamento";
   if (kind === "procedimiento") return "Procedimiento";
   return "Servicio";
@@ -1685,6 +1730,8 @@ function condition(name, row, templateId) {
   const primary = ["2", "6", "8"].includes(attention);
   const eventDate = parseDate(row.Fecha_de_ocurrencia_evento);
   const sirasRequired = Boolean(accident && eventDate && eventDate > new Date(2023, 5, 1));
+  const blankServiceCodeAllowed = templateId === "ser" && servicioSerAllowsBlankCode(row);
+  const blankCupsAllowed = templateId === "ser" && servicioSerAllowsBlankCups(row);
 
   const map = {
     accident,
@@ -1708,9 +1755,9 @@ function condition(name, row, templateId) {
     notSecondaryTransport: !secondary,
     primaryTransport: primary,
     notPrimaryTransport: !primary,
-    procedureService: serviceType === "2",
+    procedureService: serviceType === "2" && !blankCupsAllowed,
     nonProcedureService: serviceType !== "2",
-    serviceCodeRequired: ["1", "2", "5", "6", "7"].includes(serviceType),
+    serviceCodeRequired: ["1", "2", "5", "6", "7"].includes(serviceType) && !blankServiceCodeAllowed,
     serviceCodeVisible: !["3", "4", "8"].includes(serviceType),
     serviceCodeBlank: ["3", "4", "8"].includes(serviceType),
     cupsVisible: !["1", "5", "6", "7"].includes(serviceType),

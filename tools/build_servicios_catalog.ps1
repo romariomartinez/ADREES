@@ -23,19 +23,62 @@ function Clean-Code($value) {
   return (Clean-Text $value).Trim()
 }
 
+function Resolve-ServiceType($kind, $description) {
+  $text = (Clean-Text $description).ToUpperInvariant()
+  if ($text -match "TRANSPORTE|TRASLADO|AMBULANCIA") {
+    if ($text -match "PRIMARIO") { return "3" }
+    return "4"
+  }
+  if ($text -match "OSTEOSINTESIS|TORNILLO|CLAVO|PLACA|FIJADOR|PROTESIS") { return "7" }
+  if ($text -match "DISPOSITIVO|CATETER|SONDA|STENT|VALVULA|MARCAPASO") { return "6" }
+  if ($text -match "INSUMO|GASA|GUANTE|JERINGA|AGUJA|TIRA|TIRAS|LANCETA|SUTURA|APOSITO|VENDA|ALGODON|BOLSA|FRESA|SELLANTE|REACTIVO|DECOLORANTE|ALCOHOL|EQUIPO") { return "5" }
+  if ($kind -eq "medicamento") { return "1" }
+  return "2"
+}
+
+function Kind-FromServiceType($kind, $serviceType) {
+  switch ($serviceType) {
+    "1" { return "medicamento" }
+    "2" { return "procedimiento" }
+    "3" { return "transporte_primario" }
+    "4" { return "transporte_secundario" }
+    "5" { return "insumo" }
+    "6" { return "dispositivo_medico" }
+    "7" { return "material_osteosintesis" }
+    default { return $kind }
+  }
+}
+
+function Prefix-FromServiceType($serviceType) {
+  switch ($serviceType) {
+    "1" { return "MEDICAMENTO" }
+    "2" { return "PROCEDIMIENTO" }
+    "3" { return "TRANSPORTE PRIMARIO" }
+    "4" { return "TRANSPORTE SECUNDARIO" }
+    "5" { return "INSUMO" }
+    "6" { return "DISPOSITIVO MEDICO" }
+    "7" { return "MATERIAL DE OSTEOSINTESIS" }
+    default { return "SERVICIO" }
+  }
+}
+
 function Add-Item($items, $seen, $kind, $description, $serviceCode, $cups, $soat, $cums, $source) {
   $description = Clean-Text $description
   $serviceCode = Clean-Code $serviceCode
   $cups = Clean-Code $cups
   $soat = Clean-Code $soat
   $cums = Clean-Code $cums
-  if ($kind -eq "procedimiento" -and (-not $cups -or $cups.Length -gt 6)) { return }
+
+  if ($cups.Length -gt 6) { $cups = "" }
+  if ($serviceCode.Length -gt 20) { $serviceCode = "" }
+  if ($cums.Length -gt 20) { $cums = "" }
   if ($description.Length -gt 200) {
     $description = $description.Substring(0, 200).Trim()
   }
-  if (-not $description -or -not ($serviceCode -or $cups -or $soat -or $cums)) { return }
+  if (-not $description) { return }
 
-  $serviceType = if ($kind -eq "medicamento") { "1" } else { "2" }
+  $serviceType = Resolve-ServiceType $kind $description
+  $kind = Kind-FromServiceType $kind $serviceType
   $key = "$kind|$serviceCode|$cups|$soat|$cums|$description".ToUpperInvariant()
   if ($seen.ContainsKey($key)) { return }
   $seen[$key] = $true
@@ -45,7 +88,7 @@ function Add-Item($items, $seen, $kind, $description, $serviceCode, $cups, $soat
   if ($cups) { $codeParts += "CUPS $cups" }
   if ($soat) { $codeParts += "SOAT $soat" }
   $codeLabel = if ($codeParts.Count) { " (" + ($codeParts -join " / ") + ")" } else { "" }
-  $prefix = if ($kind -eq "medicamento") { "MEDICAMENTO" } else { "PROCEDIMIENTO" }
+  $prefix = Prefix-FromServiceType $serviceType
 
   $items.Add([ordered]@{
       kind = $kind

@@ -952,6 +952,56 @@ def get_fields(template_id: str) -> list[dict]:
     return template["fields"]
 
 
+SER_NO_CODE_KEYS_CACHE: set[str] | None = None
+SER_NO_CUPS_KEYS_CACHE: set[str] | None = None
+
+
+def ser_catalog_key(description: str, service_type: str) -> str:
+    return f"{clean(service_type)}|{clean(description).casefold()}"
+
+
+def ser_item_has_any_code(item: dict) -> bool:
+    return any(clean(item.get(key)) for key in ("serviceCode", "cums", "cups", "soat"))
+
+
+def ser_no_code_keys() -> set[str]:
+    global SER_NO_CODE_KEYS_CACHE
+    if SER_NO_CODE_KEYS_CACHE is None:
+        SER_NO_CODE_KEYS_CACHE = {
+            ser_catalog_key(item.get("description", ""), item.get("serviceType", ""))
+            for item in SERVICIOS_SER_ITEMS
+            if not ser_item_has_any_code(item)
+        }
+    return SER_NO_CODE_KEYS_CACHE
+
+
+def ser_no_cups_keys() -> set[str]:
+    global SER_NO_CUPS_KEYS_CACHE
+    if SER_NO_CUPS_KEYS_CACHE is None:
+        SER_NO_CUPS_KEYS_CACHE = {
+            ser_catalog_key(item.get("description", ""), item.get("serviceType", ""))
+            for item in SERVICIOS_SER_ITEMS
+            if clean(item.get("serviceType")) == "2" and not clean(item.get("cups"))
+        }
+    return SER_NO_CUPS_KEYS_CACHE
+
+
+def ser_catalog_allows_blank_code(row: dict) -> bool:
+    key = ser_catalog_key(
+        row.get("Descripcion_del_servicio_o_elemento_reclamado", ""),
+        row.get("Tipo_de_servicio", ""),
+    )
+    return key in ser_no_code_keys()
+
+
+def ser_catalog_allows_blank_cups(row: dict) -> bool:
+    key = ser_catalog_key(
+        row.get("Descripcion_del_servicio_o_elemento_reclamado", ""),
+        row.get("Tipo_de_servicio", ""),
+    )
+    return key in ser_no_cups_keys()
+
+
 def condition(name: str | None, row: dict, template_id: str) -> bool:
     if not name:
         return False
@@ -974,6 +1024,8 @@ def condition(name: str | None, row: dict, template_id: str) -> bool:
     siras_required = bool(
         accident and event_date and event_date > datetime(2023, 6, 1).date()
     )
+    blank_service_code_allowed = template_id == "ser" and ser_catalog_allows_blank_code(row)
+    blank_cups_allowed = template_id == "ser" and ser_catalog_allows_blank_cups(row)
 
     checks = {
         "accident": accident,
@@ -997,9 +1049,9 @@ def condition(name: str | None, row: dict, template_id: str) -> bool:
         "notSecondaryTransport": not secondary,
         "primaryTransport": primary,
         "notPrimaryTransport": not primary,
-        "procedureService": service_type == "2",
+        "procedureService": service_type == "2" and not blank_cups_allowed,
         "nonProcedureService": service_type != "2",
-        "serviceCodeRequired": service_type in {"1", "2", "5", "6", "7"},
+        "serviceCodeRequired": service_type in {"1", "2", "5", "6", "7"} and not blank_service_code_allowed,
         "serviceCodeVisible": service_type not in {"3", "4", "8"},
         "serviceCodeBlank": service_type in {"3", "4", "8"},
         "cupsVisible": service_type not in {"1", "5", "6", "7"},
