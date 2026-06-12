@@ -107,6 +107,12 @@ FREQUENT_FIELD_NAMES = {
 }
 PDF_UPLOAD_LIMIT = 8 * 1024 * 1024
 PDF_MONEY_RE = r"(?:\d{1,3}(?:[.,]\d{3})+|\d+)(?:[.,]\d{2})"
+PDF_MONEY_LINE_RE = re.compile(rf"^{PDF_MONEY_RE}$")
+PDF_INTEGER_LINE_RE = re.compile(r"^\d+$")
+PDF_DATE_TIME_LINE_RE = re.compile(
+    r"^\d{1,2}[-/][A-Za-z]{3,}(?:[-/]\d{2,4})?\s+\d{1,2}:\d{2}$",
+    re.IGNORECASE,
+)
 PDF_ITEM_TAIL_RE = re.compile(
     rf"\b(?P<date>\d{{1,2}}[-/][A-Za-z]{{3,}}(?:[-/]\d{{2,4}})?|\d{{1,2}}/\d{{1,2}}/\d{{2,4}})"
     rf"\s+(?P<time>\d{{1,2}}:\d{{2}})"
@@ -1260,6 +1266,95 @@ def parse_pdf_item_line(line: str) -> dict | None:
     }
 
 
+def extract_pdf_invoice_info(text: str) -> dict:
+    invoice = ""
+    invoice_match = re.search(r"\bFVEE\s*([0-9]+)\b", text, re.IGNORECASE)
+    if invoice_match:
+        invoice = f"{INVOICE_PREFIX}{invoice_match.group(1)}"
+
+    nit = ""
+    nit_match = re.search(r"\bNIT\s+([0-9][0-9.\s-]{5,20})", text, re.IGNORECASE)
+    if nit_match:
+        raw_nit = nit_match.group(1)
+        digits = re.sub(r"\D", "", raw_nit)
+        if "-" in raw_nit and len(digits) > 1:
+            digits = digits[:-1]
+        nit = digits[:10]
+    return {"invoiceNumber": invoice[:20], "providerNit": nit}
+
+
+def parse_ser_pdf_vertical_items(text: str) -> list[dict]:
+    lines = [normalize_pdf_line(line) for line in text.splitlines()]
+    lines = [line for line in lines if line]
+    items: list[dict] = []
+    index = 0
+    while index < len(lines):
+        code = clean(lines[index]).strip(".,;:").upper()
+        if not is_pdf_code_token(code):
+            index += 1
+            continue
+
+        cursor = index + 1
+        cod2 = ""
+        if cursor < len(lines) and is_pdf_cod2_token(lines[cursor]):
+            cod2 = lines[cursor].strip(".,;:")
+            cursor += 1
+
+        description_parts: list[str] = []
+        while cursor < len(lines):
+            line = lines[cursor]
+            if should_ignore_pdf_line(line):
+                cursor += 1
+                continue
+            if PDF_MONEY_LINE_RE.match(line):
+                break
+            if is_pdf_code_token(line) and description_parts:
+                break
+            description_parts.append(line)
+            cursor += 1
+
+        money_values: list[str] = []
+        while cursor < len(lines) and PDF_MONEY_LINE_RE.match(lines[cursor]):
+            money_values.append(lines[cursor])
+            cursor += 1
+
+        if cursor >= len(lines) or not PDF_INTEGER_LINE_RE.match(lines[cursor]):
+            index += 1
+            continue
+        quantity = money_to_digits(lines[cursor])
+        cursor += 1
+
+        if cursor >= len(lines) or not PDF_DATE_TIME_LINE_RE.match(lines[cursor]):
+            index += 1
+            continue
+        cursor += 1
+
+        if not description_parts or not money_values:
+            index = cursor
+            continue
+
+        if len(money_values) >= 2:
+            total_value = money_to_digits(money_values[0])
+            unit_value = money_to_digits(money_values[1])
+        else:
+            unit_value = money_to_digits(money_values[0])
+            total_value = str(as_int(unit_value) * as_int(quantity)) if as_int(unit_value) is not None and as_int(quantity) is not None else unit_value
+
+        items.append(
+            {
+                "code": code[:20],
+                "cod2": cod2[:20],
+                "description": clean(" ".join(description_parts))[:240],
+                "quantity": quantity,
+                "unitValue": unit_value,
+                "totalValue": total_value,
+            }
+        )
+        index = cursor
+
+    return items
+
+
 def parse_ser_pdf_items(text: str) -> list[dict]:
     items: list[dict] = []
     current: dict | None = None
@@ -1291,7 +1386,24 @@ def parse_ser_pdf_items(text: str) -> list[dict]:
         if current:
             current["description"] = clean(f"{current['description']} {line}")[:240]
 
-    return items
+    vertical_items = parse_ser_pdf_vertical_items(text)
+    return vertical_items if len(vertical_items) > len(items) else items
+
+
+def enrich_ser_pdf_rows(rows: list[dict], text: str) -> list[dict]:
+    info = extract_pdf_invoice_info(text)
+    if not info["invoiceNumber"] and not info["providerNit"]:
+        return rows
+    enriched = []
+    for row in rows:
+        copy = {**row}
+        if info["invoiceNumber"]:
+            copy["NUM_FACTURA"] = info["invoiceNumber"]
+        if info["providerNit"]:
+            copy["NIT_PRESTADOR"] = info["providerNit"]
+        enriched.append(normalize_row("ser", copy))
+    return enriched
+
 
 
 def catalog_match_score(description: str, candidate: str) -> int:
@@ -1403,6 +1515,7 @@ def import_ser_pdf_rows(pdf_bytes: bytes) -> tuple[list[dict], list[dict]]:
         raise ValueError("No encontre la tabla de servicios con CODIGO, COD-2, DESCRIPCION, CANT y valores.")
     catalog = list_servicios_ser()
     rows = [ser_row_from_pdf_item(item, catalog) for item in items]
+    rows = enrich_ser_pdf_rows(rows, text)
     return rows, items
 
 
