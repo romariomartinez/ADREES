@@ -10,6 +10,7 @@ import re
 import secrets
 import sqlite3
 import importlib
+import unicodedata
 from copy import deepcopy
 from datetime import datetime
 from http import HTTPStatus
@@ -31,6 +32,11 @@ try:
     import openpyxl
 except ImportError:
     openpyxl = None
+
+try:
+    import pypdf
+except ImportError:
+    pypdf = None
 
 
 ROOT = Path(__file__).resolve().parent
@@ -99,6 +105,27 @@ FREQUENT_FIELD_NAMES = {
     "Direccion_de_residencia_del_propietario",
     "Direccion_de_residencia_del_conductor",
 }
+PDF_UPLOAD_LIMIT = 8 * 1024 * 1024
+PDF_MONEY_RE = r"(?:\d{1,3}(?:[.,]\d{3})+|\d+)(?:[.,]\d{2})"
+PDF_ITEM_TAIL_RE = re.compile(
+    rf"\b(?P<date>\d{{1,2}}[-/][A-Za-z]{{3,}}(?:[-/]\d{{2,4}})?|\d{{1,2}}/\d{{1,2}}/\d{{2,4}})"
+    rf"\s+(?P<time>\d{{1,2}}:\d{{2}})"
+    rf"\s+(?P<qty>\d+(?:[.,]\d+)?)"
+    rf"\s+(?P<moneys>(?:{PDF_MONEY_RE}\s*)+)$",
+    re.IGNORECASE,
+)
+PDF_CODE_RE = re.compile(r"^[A-Z0-9][A-Z0-9.-]{1,19}$", re.IGNORECASE)
+PDF_HEADER_RE = re.compile(r"\bCODIGO\b|\bCOD-?2\b|\bDESCRIPCION\b|\bFECHA/?HORA\b", re.IGNORECASE)
+PDF_IGNORE_PREFIXES = (
+    "MARCA:",
+    "TOTAL ",
+    "TOTAL:",
+    "SUBTOTAL",
+    "VALOR ",
+    "COPAGO",
+    "CUOTA ",
+    "SON ",
+)
 
 
 def load_schema() -> dict:
@@ -1150,6 +1177,271 @@ def save_service_override(user: dict, payload: dict) -> tuple[dict | None, str |
     return item, None
 
 
+def strip_accents(value: str) -> str:
+    return "".join(
+        char
+        for char in unicodedata.normalize("NFD", str(value))
+        if unicodedata.category(char) != "Mn"
+    )
+
+
+def normalize_pdf_line(value: str) -> str:
+    text = strip_accents(value).replace("\xa0", " ")
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def normalize_match_text(value: str) -> str:
+    text = normalize_pdf_line(value).upper()
+    return re.sub(r"[^A-Z0-9]+", " ", text).strip()
+
+
+def should_ignore_pdf_line(line: str) -> bool:
+    upper = line.upper()
+    if not upper:
+        return True
+    if PDF_HEADER_RE.search(upper):
+        return True
+    return any(upper.startswith(prefix) for prefix in PDF_IGNORE_PREFIXES)
+
+
+def is_pdf_code_token(value: str) -> bool:
+    token = clean(value).strip(".,;:")
+    return bool(PDF_CODE_RE.match(token) and any(char.isdigit() for char in token))
+
+
+def is_pdf_cod2_token(value: str) -> bool:
+    token = clean(value).strip(".,;:")
+    return token.isdigit() and 3 <= len(token) <= 8
+
+
+def money_to_digits(value: str) -> str:
+    text = re.sub(r"[^\d,.]", "", clean(value))
+    if not text:
+        return ""
+    decimal = re.search(r"([,.])(\d{2})$", text)
+    if decimal:
+        text = text[: decimal.start()]
+    digits = re.sub(r"\D", "", text).lstrip("0")
+    return digits or "0"
+
+
+def parse_pdf_item_line(line: str) -> dict | None:
+    match = PDF_ITEM_TAIL_RE.search(line)
+    if not match:
+        return None
+    prefix = line[: match.start()].strip()
+    tokens = prefix.split()
+    if len(tokens) < 2 or not is_pdf_code_token(tokens[0]):
+        return None
+
+    code = tokens[0].strip(".,;:").upper()
+    cod2 = ""
+    description_tokens = tokens[1:]
+    if len(description_tokens) > 1 and is_pdf_cod2_token(description_tokens[0]):
+        cod2 = description_tokens[0].strip(".,;:")
+        description_tokens = description_tokens[1:]
+    description = clean(" ".join(description_tokens))
+    if not description:
+        return None
+
+    money_values = re.findall(PDF_MONEY_RE, match.group("moneys"))
+    if not money_values:
+        return None
+    unit_value = money_to_digits(money_values[-2] if len(money_values) >= 2 else money_values[-1])
+    total_value = money_to_digits(money_values[-1])
+    quantity = money_to_digits(match.group("qty"))
+    return {
+        "code": code[:20],
+        "cod2": cod2[:20],
+        "description": description[:240],
+        "quantity": quantity,
+        "unitValue": unit_value,
+        "totalValue": total_value,
+    }
+
+
+def parse_ser_pdf_items(text: str) -> list[dict]:
+    items: list[dict] = []
+    current: dict | None = None
+    pending_prefix = ""
+
+    for raw_line in text.splitlines():
+        line = normalize_pdf_line(raw_line)
+        if should_ignore_pdf_line(line):
+            continue
+
+        candidate = f"{pending_prefix} {line}".strip() if pending_prefix else line
+        item = parse_pdf_item_line(candidate)
+        if item:
+            items.append(item)
+            current = item
+            pending_prefix = ""
+            continue
+
+        tokens = line.split()
+        if tokens and is_pdf_code_token(tokens[0]):
+            pending_prefix = candidate[:1000]
+            current = None
+            continue
+
+        if pending_prefix:
+            pending_prefix = candidate[:1000]
+            continue
+
+        if current:
+            current["description"] = clean(f"{current['description']} {line}")[:240]
+
+    return items
+
+
+def catalog_match_score(description: str, candidate: str) -> int:
+    target = normalize_match_text(description)
+    option = normalize_match_text(candidate)
+    if not target or not option:
+        return 0
+    if target == option:
+        return 100
+    if len(target) >= 12 and target in option:
+        return 80
+    if len(option) >= 12 and option in target:
+        return 70
+    target_words = {word for word in target.split() if len(word) > 2}
+    option_words = {word for word in option.split() if len(word) > 2}
+    if not target_words or not option_words:
+        return 0
+    overlap = len(target_words & option_words) / max(len(target_words), 1)
+    return 60 if overlap >= 0.72 else 0
+
+
+def find_ser_catalog_match(item: dict, catalog: list[dict]) -> dict | None:
+    codes = {clean(item.get("code")).upper(), clean(item.get("cod2")).upper()}
+    codes.discard("")
+    for candidate in catalog:
+        candidate_codes = {
+            clean(candidate.get("serviceCode")).upper(),
+            clean(candidate.get("cups")).upper(),
+            clean(candidate.get("soat")).upper(),
+            clean(candidate.get("cums")).upper(),
+        }
+        if codes & candidate_codes:
+            return candidate
+
+    best: tuple[int, dict | None] = (0, None)
+    for candidate in catalog:
+        score = catalog_match_score(item.get("description", ""), candidate.get("description", ""))
+        if score > best[0]:
+            best = (score, candidate)
+    return best[1]
+
+
+def infer_pdf_service_type(item: dict, match: dict | None) -> str:
+    if clean(item.get("cod2")):
+        return "2"
+    if match and clean(match.get("serviceType")) in SERVICE_TYPE_LABELS:
+        return clean(match.get("serviceType"))
+
+    text = normalize_match_text(item.get("description", ""))
+    if any(word in text for word in ("CONSULTA", "DERECHO DE SALA", "CURACION", "PROCEDIMIENTO", "OBSERVACION", "CIRUGIA")):
+        return "2"
+    if any(word in text for word in ("CATETER", "JERINGA", "EQUIPO", "AGUJA", "SONDA", "VENOCATH", "YELCO", "CANULA")):
+        return "6"
+    if any(word in text for word in ("TRASLADO", "TRANSPORTE", "AMBULANCIA")):
+        return "3"
+    return "1"
+
+
+def ser_row_from_pdf_item(item: dict, catalog: list[dict]) -> dict:
+    match = find_ser_catalog_match(item, catalog)
+    service_type = infer_pdf_service_type(item, match)
+    code = clean(item.get("code"))[:20]
+    cod2 = clean(item.get("cod2"))[:20]
+    service_code = ""
+    cups = ""
+
+    if service_type == "2":
+        service_code = cod2 or clean((match or {}).get("soat")) or clean((match or {}).get("serviceCode"))
+        cups = code or clean((match or {}).get("cups"))
+    elif service_type in {"3", "4", "8"}:
+        service_code = ""
+        cups = clean((match or {}).get("cups"))
+    else:
+        service_code = code or clean((match or {}).get("serviceCode"))
+        cups = ""
+
+    return normalize_row(
+        "ser",
+        {
+            "Tipo_de_servicio": service_type,
+            "Codigo_del_servicio": service_code[:20],
+            "Codificacion_CUPS": cups[:6],
+            "Descripcion_del_servicio_o_elemento_reclamado": clean(item.get("description"))[:200],
+            "Cantidad_de_servicios": clean(item.get("quantity")),
+            "Valor_unitario_facturado": clean(item.get("unitValue")),
+            "Valor_unitario_reclamado": clean(item.get("unitValue")),
+            "Valor_total_facturado": clean(item.get("totalValue")),
+            "Valor_total_reclamado": clean(item.get("totalValue")),
+        },
+    )
+
+
+def extract_pdf_text(pdf_bytes: bytes) -> str:
+    if pypdf is None:
+        raise RuntimeError("Falta instalar pypdf para leer PDF. En Vercel se instala desde requirements.txt.")
+    reader = pypdf.PdfReader(BytesIO(pdf_bytes))
+    parts = []
+    for page in reader.pages:
+        parts.append(page.extract_text() or "")
+    return "\n".join(parts)
+
+
+def import_ser_pdf_rows(pdf_bytes: bytes) -> tuple[list[dict], list[dict]]:
+    text = extract_pdf_text(pdf_bytes)
+    if not normalize_pdf_line(text):
+        raise ValueError("No pude leer texto del PDF. Si es escaneado o foto, necesitaremos OCR.")
+    items = parse_ser_pdf_items(text)
+    if not items:
+        raise ValueError("No encontre la tabla de servicios con CODIGO, COD-2, DESCRIPCION, CANT y valores.")
+    catalog = list_servicios_ser()
+    rows = [ser_row_from_pdf_item(item, catalog) for item in items]
+    return rows, items
+
+
+def multipart_boundary(content_type: str) -> bytes:
+    match = re.search(r"boundary=(?:\"([^\"]+)\"|([^;]+))", content_type)
+    if not match:
+        return b""
+    return (match.group(1) or match.group(2) or "").encode("utf-8")
+
+
+def parse_multipart_file(raw: bytes, content_type: str, field_name: str) -> tuple[str, bytes]:
+    boundary = multipart_boundary(content_type)
+    if not boundary:
+        raise ValueError("La subida del archivo no tiene boundary multipart.")
+
+    marker = b"--" + boundary
+    for part in raw.split(marker):
+        if part.startswith(b"\r\n"):
+            part = part[2:]
+        if part.endswith(b"\r\n"):
+            part = part[:-2]
+        if not part or part == b"--":
+            continue
+        if part.endswith(b"--"):
+            part = part[:-2].rstrip(b"\r\n")
+        header_blob, separator, body = part.partition(b"\r\n\r\n")
+        if not separator:
+            continue
+        headers = header_blob.decode("utf-8", errors="ignore")
+        disposition = next((line for line in headers.split("\r\n") if line.lower().startswith("content-disposition:")), "")
+        name_match = re.search(r'name="([^"]+)"', disposition)
+        if not name_match or name_match.group(1) != field_name:
+            continue
+        filename_match = re.search(r'filename="([^"]*)"', disposition)
+        filename = filename_match.group(1) if filename_match else ""
+        return filename, body
+    raise ValueError("No encontre el archivo PDF en la solicitud.")
+
+
 def ser_no_code_keys() -> set[str]:
     global SER_NO_CODE_KEYS_CACHE
     if SER_NO_CODE_KEYS_CACHE is None:
@@ -1504,6 +1796,15 @@ class AppHandler(BaseHTTPRequestHandler):
             return {}
         return json.loads(raw.decode("utf-8"))
 
+    def read_uploaded_file(self, field_name: str) -> tuple[str, bytes]:
+        length = int(self.headers.get("Content-Length", "0"))
+        if not length:
+            raise ValueError("No se recibio ningun archivo.")
+        if length > PDF_UPLOAD_LIMIT:
+            raise ValueError("El PDF es demasiado grande. Usa un archivo menor a 8 MB.")
+        raw = self.rfile.read(length)
+        return parse_multipart_file(raw, self.headers.get("Content-Type", ""), field_name)
+
     def current_user(self) -> dict | None:
         cookie = SimpleCookie(self.headers.get("Cookie", ""))
         morsel = cookie.get(SESSION_COOKIE)
@@ -1655,6 +1956,24 @@ class AppHandler(BaseHTTPRequestHandler):
                 self.send_json({"ok": False, "errors": [{"message": error}]}, status=422)
                 return
             self.send_json({"ok": True, "item": item})
+            return
+
+        if path == "/api/import/ser-pdf":
+            if not self.require_user():
+                return
+            try:
+                filename, pdf_bytes = self.read_uploaded_file("file")
+                if filename and not filename.lower().endswith(".pdf"):
+                    self.send_json({"ok": False, "errors": [{"message": "Selecciona un archivo PDF."}]}, status=400)
+                    return
+                rows, items = import_ser_pdf_rows(pdf_bytes)
+            except ValueError as exc:
+                self.send_json({"ok": False, "errors": [{"message": str(exc)}]}, status=422)
+                return
+            except RuntimeError as exc:
+                self.send_json({"ok": False, "errors": [{"message": str(exc)}]}, status=500)
+                return
+            self.send_json({"ok": True, "rows": rows, "items": items, "count": len(rows)})
             return
 
         if path.startswith("/api/drafts/"):

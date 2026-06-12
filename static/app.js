@@ -223,6 +223,18 @@ function bindChrome() {
     render();
   });
 
+  document.querySelector("#import-ser-pdf").addEventListener("click", () => {
+    if (activeTemplate !== "ser") {
+      activeTemplate = "ser";
+      document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.template === "ser"));
+      render();
+    }
+    const input = document.querySelector("#ser-pdf-input");
+    input.value = "";
+    input.click();
+  });
+  document.querySelector("#ser-pdf-input").addEventListener("change", importSerPdf);
+
   document.querySelector("#history-button").addEventListener("click", () => {
     hideMessage();
     if (!currentUser?.isSuperAdmin) {
@@ -401,6 +413,7 @@ function render() {
 function setFormActions(mode) {
   const inForm = mode === "form";
   document.querySelector("#sync-ser").hidden = !inForm;
+  document.querySelector("#import-ser-pdf").hidden = !inForm || activeTemplate !== "ser";
   document.querySelector("#save-draft-button").hidden = !inForm;
   document.querySelector("#clear-form").hidden = !inForm;
   document.querySelector("#export-form").hidden = !inForm;
@@ -1901,6 +1914,64 @@ function renderStatus() {
     chip.innerHTML = `<span>Servicio ${rowNumber}</span><strong>${rowErrors ? `${rowErrors} error` : "OK"}</strong>`;
     sectionList.append(chip);
   });
+}
+
+function serHasFilledServices() {
+  return state.ser.some((row) => Object.entries(row || {}).some(([field, value]) => {
+    if (field === "NUM_FACTURA" || field === "NIT_PRESTADOR") return false;
+    return Boolean(clean(value));
+  }));
+}
+
+async function importSerPdf(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (file.type && file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+    showMessage("Selecciona un archivo PDF.", "error");
+    return;
+  }
+  if (serHasFilledServices() && !window.confirm("Importar este PDF reemplazara los servicios actuales del SER. Continuar?")) {
+    event.target.value = "";
+    return;
+  }
+
+  const button = document.querySelector("#import-ser-pdf");
+  button.disabled = true;
+  setButtonContent(button, "file", "Leyendo PDF...");
+  const form = new FormData();
+  form.append("file", file);
+
+  try {
+    const response = await fetch("/api/import/ser-pdf", {
+      method: "POST",
+      body: form
+    });
+    const data = await readJsonResponse(response);
+    if (!response.ok) throw new Error(data.errors?.[0]?.message || "No se pudo leer el PDF.");
+
+    const factura = clean(state.ser[0]?.NUM_FACTURA) || clean(state.fur.NUM_FACTURA);
+    const nit = clean(state.ser[0]?.NIT_PRESTADOR) || clean(state.fur.NIT_PRESTADOR);
+    const importedRows = (data.rows || []).map((row) => ({
+      ...row,
+      NUM_FACTURA: clean(row.NUM_FACTURA) || factura,
+      NIT_PRESTADOR: clean(row.NIT_PRESTADOR) || nit
+    }));
+    if (!importedRows.length) throw new Error("No se encontraron servicios para llenar.");
+
+    state.ser = importedRows;
+    activeTemplate = "ser";
+    document.querySelectorAll(".tab").forEach((tab) => tab.classList.toggle("active", tab.dataset.template === "ser"));
+    normalizeAll();
+    saveState();
+    render();
+    showMessage(`PDF importado: ${importedRows.length} servicio${importedRows.length === 1 ? "" : "s"} cargado${importedRows.length === 1 ? "" : "s"} para revisar.`, "ok");
+  } catch (err) {
+    showMessage(err.message, "error");
+  } finally {
+    event.target.value = "";
+    button.disabled = false;
+    setButtonContent(button, "file", "Importar PDF");
+  }
 }
 
 async function exportActive() {
