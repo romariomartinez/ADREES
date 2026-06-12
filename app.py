@@ -123,6 +123,7 @@ PDF_ITEM_TAIL_RE = re.compile(
 PDF_CODE_RE = re.compile(r"^[A-Z0-9][A-Z0-9.-]{1,19}$", re.IGNORECASE)
 PDF_HEADER_RE = re.compile(r"\bCODIGO\b|\bCOD-?2\b|\bDESCRIPCION\b|\bFECHA/?HORA\b", re.IGNORECASE)
 PDF_IGNORE_PREFIXES = (
+    "AUTORIZACION:",
     "MARCA:",
     "TOTAL ",
     "TOTAL:",
@@ -1210,6 +1211,11 @@ def should_ignore_pdf_line(line: str) -> bool:
     return any(upper.startswith(prefix) for prefix in PDF_IGNORE_PREFIXES)
 
 
+def is_pdf_auxiliary_line(line: str) -> bool:
+    upper = line.upper()
+    return upper.startswith(("AUTORIZACION:", "AUTORIZACION "))
+
+
 def is_pdf_code_token(value: str) -> bool:
     token = clean(value).strip(".,;:")
     if not token or PDF_MONEY_LINE_RE.match(clean(value)):
@@ -1325,6 +1331,9 @@ def parse_ser_pdf_vertical_items(text: str) -> list[dict]:
             continue
         quantity = money_to_digits(lines[cursor])
         cursor += 1
+
+        while cursor < len(lines) and is_pdf_auxiliary_line(lines[cursor]):
+            cursor += 1
 
         if cursor >= len(lines) or not PDF_DATE_TIME_LINE_RE.match(lines[cursor]):
             index += 1
