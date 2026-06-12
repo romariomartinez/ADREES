@@ -1212,6 +1212,8 @@ def should_ignore_pdf_line(line: str) -> bool:
 
 def is_pdf_code_token(value: str) -> bool:
     token = clean(value).strip(".,;:")
+    if not token or PDF_MONEY_LINE_RE.match(clean(value)):
+        return False
     return bool(PDF_CODE_RE.match(token) and any(char.isdigit() for char in token))
 
 
