@@ -159,9 +159,9 @@ button {
 }
 
 .auth-logo {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
+  width: 96px;
+  height: 96px;
+  border-radius: 14px;
   box-shadow: 0 14px 28px rgba(50, 180, 180, 0.22);
 }
 
