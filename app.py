@@ -196,12 +196,16 @@ def get_openpyxl():
 
 
 def validate_database_url():
-    if IS_VERCEL and re.search(r"@db\.[^/:]+\.supabase\.co:5432\b", DATABASE_URL):
+    parsed = urlparse(DATABASE_URL)
+    host = parsed.hostname or ""
+    username = unquote(parsed.username or "")
+    port = parsed.port
+    if IS_VERCEL and host.startswith("db.") and host.endswith(".supabase.co") and port == 5432:
         raise RuntimeError(
             "En Vercel no uses la conexion directa de Supabase db.[proyecto].supabase.co:5432. "
             "Usa la cadena Transaction pooler de Supabase, normalmente aws-[region].pooler.supabase.com:6543."
         )
-    if IS_VERCEL and "pooler.supabase.com:6543" in DATABASE_URL and re.search(r"^postgresql://postgres:", DATABASE_URL):
+    if IS_VERCEL and host.endswith("pooler.supabase.com") and port == 6543 and username == "postgres":
         raise RuntimeError(
             "La URL del Transaction pooler de Supabase debe usar usuario postgres.PROJECT_REF, no solo postgres. "
             "En este proyecto debe empezar parecido a postgresql://postgres.ixrdhxqoqkdoayzrahtb:TU_CLAVE@aws-...pooler.supabase.com:6543/postgres?sslmode=require."
