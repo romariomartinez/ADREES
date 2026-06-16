@@ -38,6 +38,15 @@ try:
 except ImportError:
     pypdf = None
 
+try:
+    import firebase_admin
+    from firebase_admin import credentials as firebase_credentials
+    from firebase_admin import messaging as firebase_messaging
+except ImportError:
+    firebase_admin = None
+    firebase_credentials = None
+    firebase_messaging = None
+
 
 ROOT = Path(__file__).resolve().parent
 DATABASE_URL = (
@@ -61,6 +70,21 @@ STATIC_DIR = ROOT / "static"
 TEMPLATE_DIR = ROOT / "templates"
 EXPORT_DIR = Path(os.environ.get("ADRES_EXPORT_DIR", DATA_DIR / "exports"))
 DB_PATH = Path(os.environ.get("ADRES_DB_PATH", DATA_DIR / "app.db"))
+FIREBASE_SDK_VERSION = "10.12.5"
+FIREBASE_API_KEY = os.environ.get("FIREBASE_API_KEY", "")
+FIREBASE_AUTH_DOMAIN = os.environ.get("FIREBASE_AUTH_DOMAIN", "")
+FIREBASE_PROJECT_ID = os.environ.get("FIREBASE_PROJECT_ID", "")
+FIREBASE_STORAGE_BUCKET = os.environ.get("FIREBASE_STORAGE_BUCKET", "")
+FIREBASE_MESSAGING_SENDER_ID = os.environ.get("FIREBASE_MESSAGING_SENDER_ID", "")
+FIREBASE_APP_ID = os.environ.get("FIREBASE_APP_ID", "")
+FIREBASE_VAPID_KEY = os.environ.get("FIREBASE_VAPID_KEY", "")
+FIREBASE_SERVICE_ACCOUNT_JSON = (
+    os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON")
+    or os.environ.get("FIREBASE_ADMIN_CREDENTIALS")
+    or ""
+)
+FIREBASE_SERVICE_ACCOUNT_BASE64 = os.environ.get("FIREBASE_SERVICE_ACCOUNT_BASE64", "")
+FIREBASE_ADMIN_APP = None
 SAVE_EXPORT_COPY = os.environ.get("ADRES_SAVE_EXPORT_COPY")
 if SAVE_EXPORT_COPY is None:
     SAVE_EXPORT_COPY_ENABLED = not IS_VERCEL
@@ -423,6 +447,27 @@ def init_db():
             ON service_overrides(service_type, description)
             """
         )
+        conn.execute(
+            f"""
+            CREATE TABLE IF NOT EXISTS notification_tokens (
+                id {id_type} {primary_key},
+                user_id {user_id_type} NOT NULL,
+                token TEXT NOT NULL UNIQUE,
+                platform TEXT NOT NULL DEFAULT '',
+                user_agent TEXT NOT NULL DEFAULT '',
+                active INTEGER NOT NULL DEFAULT 1,
+                created_at TEXT NOT NULL,
+                last_seen_at TEXT NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE INDEX IF NOT EXISTS idx_notification_tokens_user
+            ON notification_tokens(user_id, active)
+            """
+        )
 
 def hash_password(password: str, salt: bytes | None = None) -> tuple[str, str]:
     salt = salt or secrets.token_bytes(16)
@@ -703,6 +748,21 @@ def history_record(row: dict | sqlite3.Row) -> dict:
     }
 
 
+def get_history_record(record_id: int) -> dict | None:
+    with db_connect() as conn:
+        row = conn.execute(
+            """
+            SELECT r.id, r.user_id, r.template_id, r.invoice_number, r.filename, r.row_count, r.created_at,
+                   u.username, u.display_name
+            FROM invoice_records r
+            JOIN users u ON u.id = r.user_id
+            WHERE r.id = ?
+            """,
+            (record_id,),
+        ).fetchone()
+    return dict(row) if row else None
+
+
 def list_history(filters: dict | None = None, limit: int = 200) -> list[dict]:
     filters = filters or {}
     clauses = []
@@ -780,6 +840,166 @@ def delete_history_record(record_id: int) -> tuple[dict | None, str | None]:
             export_path.unlink()
 
     return history_record(row), None
+
+
+def firebase_public_config() -> tuple[dict, list[str]]:
+    config = {
+        "apiKey": FIREBASE_API_KEY,
+        "authDomain": FIREBASE_AUTH_DOMAIN,
+        "projectId": FIREBASE_PROJECT_ID,
+        "storageBucket": FIREBASE_STORAGE_BUCKET,
+        "messagingSenderId": FIREBASE_MESSAGING_SENDER_ID,
+        "appId": FIREBASE_APP_ID,
+    }
+    missing = [key for key, value in config.items() if key != "storageBucket" and not value]
+    if not FIREBASE_VAPID_KEY:
+        missing.append("vapidKey")
+    return config, missing
+
+
+def firebase_notifications_enabled() -> bool:
+    _, missing = firebase_public_config()
+    return not missing
+
+
+def firebase_service_account() -> dict | None:
+    raw = FIREBASE_SERVICE_ACCOUNT_JSON
+    if FIREBASE_SERVICE_ACCOUNT_BASE64:
+        raw = base64.b64decode(FIREBASE_SERVICE_ACCOUNT_BASE64).decode("utf-8")
+    if not raw:
+        return None
+    return json.loads(raw)
+
+
+def get_firebase_messaging():
+    global FIREBASE_ADMIN_APP
+    if firebase_admin is None or firebase_credentials is None or firebase_messaging is None:
+        raise RuntimeError("Falta instalar firebase-admin para enviar notificaciones.")
+    if FIREBASE_ADMIN_APP is None:
+        service_account = firebase_service_account()
+        if service_account:
+            credential = firebase_credentials.Certificate(service_account)
+            FIREBASE_ADMIN_APP = firebase_admin.initialize_app(credential)
+        else:
+            if not os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
+                raise RuntimeError("Falta FIREBASE_SERVICE_ACCOUNT_JSON para enviar notificaciones desde Vercel.")
+            FIREBASE_ADMIN_APP = firebase_admin.initialize_app()
+    return firebase_messaging
+
+
+def register_notification_token(user: dict, payload: dict, user_agent: str = "") -> tuple[dict | None, str | None]:
+    token = clean(payload.get("token"))
+    if not token or len(token) > 4096:
+        return None, "Token de notificacion no valido."
+    platform = clean(payload.get("platform"))[:80]
+    timestamp = now_iso()
+    with db_connect() as conn:
+        conn.execute(
+            """
+            INSERT INTO notification_tokens (user_id, token, platform, user_agent, active, created_at, last_seen_at)
+            VALUES (?, ?, ?, ?, 1, ?, ?)
+            ON CONFLICT(token)
+            DO UPDATE SET
+                user_id = excluded.user_id,
+                platform = excluded.platform,
+                user_agent = excluded.user_agent,
+                active = 1,
+                last_seen_at = excluded.last_seen_at
+            """,
+            (user["id"], token, platform, user_agent[:400], timestamp, timestamp),
+        )
+    return {"token": token[-12:], "platform": platform, "active": True}, None
+
+
+def list_notification_tokens(user_id: int) -> list[str]:
+    with db_connect() as conn:
+        rows = conn.execute(
+            """
+            SELECT token
+            FROM notification_tokens
+            WHERE user_id = ? AND active = 1
+            ORDER BY last_seen_at DESC
+            """,
+            (user_id,),
+        ).fetchall()
+    return [row["token"] for row in rows]
+
+
+def deactivate_notification_token(token: str):
+    with db_connect() as conn:
+        conn.execute("UPDATE notification_tokens SET active = 0 WHERE token = ?", (token,))
+
+
+def send_push_to_user(user_id: int, title: str, body: str, data: dict | None = None) -> dict:
+    tokens = list_notification_tokens(user_id)
+    if not tokens:
+        return {"sent": 0, "failed": 0, "message": "Ese usuario no tiene notificaciones activas."}
+    messaging = get_firebase_messaging()
+    message = messaging.MulticastMessage(
+        notification=messaging.Notification(title=title, body=body),
+        data={key: clean(value) for key, value in (data or {}).items()},
+        tokens=tokens,
+    )
+    if hasattr(messaging, "send_each_for_multicast"):
+        result = messaging.send_each_for_multicast(message)
+    else:
+        result = messaging.send_multicast(message)
+    for token, response in zip(tokens, result.responses):
+        if not response.success:
+            deactivate_notification_token(token)
+    return {"sent": int(result.success_count), "failed": int(result.failure_count)}
+
+
+def notify_payment_for_record(record_id: int, amount: str = "") -> tuple[dict | None, str | None]:
+    record = get_history_record(record_id)
+    if not record:
+        return None, "Registro de historial no encontrado."
+    invoice = clean(record.get("invoice_number"))
+    amount = clean(amount)
+    title = "Pago registrado"
+    body = f"Se registro el pago de la factura {invoice}."
+    if amount:
+        body = f"Se registro el pago de la factura {invoice} por {amount}."
+    result = send_push_to_user(
+        int(record["user_id"]),
+        title,
+        body,
+        {
+            "type": "payment",
+            "invoiceNumber": invoice,
+            "templateId": record["template_id"],
+            "amount": amount,
+        },
+    )
+    return {"record": history_record(record), "result": result}, None
+
+
+def firebase_service_worker_js() -> bytes:
+    config, missing = firebase_public_config()
+    if missing:
+        script = """
+self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
+"""
+        return script.encode("utf-8")
+    config_json = json.dumps(config, ensure_ascii=False)
+    script = f"""
+importScripts("https://www.gstatic.com/firebasejs/{FIREBASE_SDK_VERSION}/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/{FIREBASE_SDK_VERSION}/firebase-messaging-compat.js");
+
+firebase.initializeApp({config_json});
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage((payload) => {{
+  const notification = payload.notification || {{}};
+  self.registration.showNotification(notification.title || "Notificacion", {{
+    body: notification.body || "",
+    icon: "/static/assets/hospital-logo.png",
+    data: payload.data || {{}}
+  }});
+}});
+"""
+    return script.encode("utf-8")
 
 
 def draft_record(row: dict | sqlite3.Row) -> dict:
@@ -1917,6 +2137,14 @@ class AppHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def send_javascript(self, data: bytes):
+        self.send_response(200)
+        self.send_header("Content-Type", "application/javascript; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
     def read_json(self) -> dict:
         length = int(self.headers.get("Content-Length", "0"))
         raw = self.rfile.read(length) if length else b"{}"
@@ -1969,8 +2197,23 @@ class AppHandler(BaseHTTPRequestHandler):
         if path == "/":
             self.send_static(STATIC_DIR / "index.html")
             return
+        if path == "/firebase-messaging-sw.js":
+            self.send_javascript(firebase_service_worker_js())
+            return
         if path == "/api/schema":
             self.send_json(deepcopy(SCHEMA))
+            return
+        if path == "/api/firebase-config":
+            config, missing = firebase_public_config()
+            self.send_json(
+                {
+                    "enabled": not missing,
+                    "config": config if not missing else {},
+                    "vapidKey": FIREBASE_VAPID_KEY if not missing else "",
+                    "sdkVersion": FIREBASE_SDK_VERSION,
+                    "missing": missing,
+                }
+            )
             return
         if path == "/api/divipola":
             self.send_json({"items": DIVIPOLA_ITEMS})
@@ -2086,6 +2329,39 @@ class AppHandler(BaseHTTPRequestHandler):
             self.send_json({"ok": True, "item": item})
             return
 
+        if path == "/api/notifications/register":
+            user = self.require_user()
+            if not user:
+                return
+            try:
+                payload = self.read_json()
+            except json.JSONDecodeError:
+                self.send_json({"ok": False, "errors": [{"message": "JSON invalido."}]}, status=400)
+                return
+            token, error = register_notification_token(user, payload, self.headers.get("User-Agent", ""))
+            if error:
+                self.send_json({"ok": False, "errors": [{"message": error}]}, status=422)
+                return
+            self.send_json({"ok": True, "token": token})
+            return
+
+        if path == "/api/notifications/test":
+            user = self.require_user()
+            if not user:
+                return
+            try:
+                result = send_push_to_user(
+                    int(user["id"]),
+                    "Notificaciones activadas",
+                    "Tu telefono ya puede recibir avisos de pago.",
+                    {"type": "test"},
+                )
+            except Exception as exc:
+                self.send_json({"ok": False, "errors": [{"message": safe_error_text(exc)}]}, status=500)
+                return
+            self.send_json({"ok": True, "result": result})
+            return
+
         if path == "/api/import/ser-pdf":
             if not self.require_user():
                 return
@@ -2106,6 +2382,9 @@ class AppHandler(BaseHTTPRequestHandler):
 
         if path.startswith("/api/drafts/"):
             self.handle_save_draft(path)
+            return
+        if path.startswith("/api/history/") and path.endswith("/notify-payment"):
+            self.handle_notify_payment(path)
             return
         if path.startswith("/api/users/"):
             self.handle_update_user(path)
@@ -2224,6 +2503,30 @@ class AppHandler(BaseHTTPRequestHandler):
         draft = save_draft(user, template_id, rows, draft_id)
         record_frequent_values(user, rows)
         self.send_json({"ok": True, "draft": draft})
+
+    def handle_notify_payment(self, path: str):
+        if not self.require_super_admin():
+            return
+        record_id_text = path.removeprefix("/api/history/").removesuffix("/notify-payment").strip("/")
+        try:
+            record_id = int(record_id_text)
+        except ValueError:
+            self.send_json({"ok": False, "errors": [{"message": "Registro no reconocido."}]}, status=404)
+            return
+        try:
+            payload = self.read_json()
+        except json.JSONDecodeError:
+            self.send_json({"ok": False, "errors": [{"message": "JSON invalido."}]}, status=400)
+            return
+        try:
+            result, error = notify_payment_for_record(record_id, clean(payload.get("amount")))
+        except Exception as exc:
+            self.send_json({"ok": False, "errors": [{"message": safe_error_text(exc)}]}, status=500)
+            return
+        if error:
+            self.send_json({"ok": False, "errors": [{"message": error}]}, status=404)
+            return
+        self.send_json({"ok": True, **result})
 
     def handle_update_user(self, path: str):
         admin = self.require_super_admin()
