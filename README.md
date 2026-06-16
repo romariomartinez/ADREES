@@ -100,26 +100,6 @@ Debe responder `{"ok": true, ...}`. Si responde error, revisa que `DATABASE_URL`
 
 Para Vercel evita la cadena directa `db.[proyecto].supabase.co:5432`. En Supabase usa `Connect` -> `Transaction pooler`, que normalmente usa host `aws-[region].pooler.supabase.com` y puerto `6543`.
 
-## Notificaciones Firebase
-
-La app puede registrar el telefono/navegador de cada facturador para recibir avisos push. El usuario debe entrar a la app desde su telefono y usar `Activar notificaciones` en el menu del perfil.
-
-En Vercel agrega estas variables de Firebase Web:
-
-- `FIREBASE_API_KEY`
-- `FIREBASE_AUTH_DOMAIN`
-- `FIREBASE_PROJECT_ID`
-- `FIREBASE_STORAGE_BUCKET` opcional
-- `FIREBASE_MESSAGING_SENDER_ID`
-- `FIREBASE_APP_ID`
-- `FIREBASE_VAPID_KEY`
-
-Para que el servidor pueda enviar avisos, agrega tambien la credencial privada del service account:
-
-- `FIREBASE_SERVICE_ACCOUNT_JSON`
-
-Desde `Historial`, el super admin puede usar `Notificar pago` para avisarle al facturador que exporto esa factura. Cuando exista un modulo de pagos real, ese mismo envio se puede llamar automaticamente al confirmar el pago.
-
 ## Estructura
 
 - `data/schema.json`: campos, listas permitidas, longitudes, ayudas y reglas condicionales.

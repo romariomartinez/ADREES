@@ -12,8 +12,6 @@ let servicioSerItems = [];
 let servicioSerNoCodeKeys = new Set();
 let servicioSerNoCupsKeys = new Set();
 let servicioSerOverrideTimers = new Map();
-let firebaseClient = null;
-let firebaseForegroundListenerReady = false;
 let pendingTabFocus = null;
 const activeDraftId = {
   fur: null,
@@ -25,7 +23,6 @@ const STORAGE_KEY = "adres-fur-assistant";
 const INVOICE_PREFIX = "FVEE";
 const ICONS = {
   activity: '<path d="M3 12h4l3 8 4-16 3 8h4"/>',
-  bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
   clear: '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>',
   copy: '<rect x="8" y="8" width="10" height="10" rx="2"/><path d="M6 16H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
   download: '<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>',
@@ -238,7 +235,6 @@ function bindChrome() {
   });
   document.querySelector("#ser-pdf-input").addEventListener("change", importSerPdf);
 
-  document.querySelector("#notifications-button").addEventListener("click", enableNotifications);
   document.querySelector("#history-button").addEventListener("click", () => {
     hideMessage();
     if (!currentUser?.isSuperAdmin) {
@@ -368,79 +364,6 @@ async function logout() {
   authMode = setupRequired ? "setup" : "login";
   renderAuthMode();
   showAuth();
-}
-
-async function loadFirebaseClient() {
-  if (firebaseClient) return firebaseClient;
-  const response = await fetch("/api/firebase-config");
-  const data = await readJsonResponse(response);
-  if (!response.ok) throw new Error(data.errors?.[0]?.message || "No se pudo cargar Firebase.");
-  if (!data.enabled) {
-    throw new Error(`Firebase no esta configurado. Faltan: ${(data.missing || []).join(", ")}`);
-  }
-  const version = data.sdkVersion || "10.12.5";
-  const appModule = await import(`https://www.gstatic.com/firebasejs/${version}/firebase-app.js`);
-  const messagingModule = await import(`https://www.gstatic.com/firebasejs/${version}/firebase-messaging.js`);
-  const app = appModule.initializeApp(data.config);
-  const messaging = messagingModule.getMessaging(app);
-  firebaseClient = {
-    messaging,
-    vapidKey: data.vapidKey,
-    getToken: messagingModule.getToken,
-    onMessage: messagingModule.onMessage
-  };
-  return firebaseClient;
-}
-
-async function enableNotifications() {
-  closeProfileMenu();
-  if (!("Notification" in window) || !("serviceWorker" in navigator)) {
-    showMessage("Este navegador no soporta notificaciones push.", "error");
-    return;
-  }
-  const button = document.querySelector("#notifications-button");
-  button.disabled = true;
-  setButtonContent(button, "bell", "Activando...");
-  try {
-    const permission = await Notification.requestPermission();
-    if (permission !== "granted") {
-      throw new Error("Debes permitir las notificaciones en el navegador.");
-    }
-    const client = await loadFirebaseClient();
-    const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
-    const token = await client.getToken(client.messaging, {
-      vapidKey: client.vapidKey,
-      serviceWorkerRegistration: registration
-    });
-    if (!token) throw new Error("Firebase no devolvio token de notificacion.");
-    const response = await fetch("/api/notifications/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token, platform: navigator.platform || "" })
-    });
-    const data = await readJsonResponse(response);
-    if (!response.ok) throw new Error(data.errors?.[0]?.message || "No se pudo guardar el token.");
-
-    if (!firebaseForegroundListenerReady) {
-      client.onMessage(client.messaging, (payload) => {
-        const notification = payload.notification || {};
-        showMessage(notification.body || notification.title || "Nueva notificacion recibida.", "ok");
-      });
-      firebaseForegroundListenerReady = true;
-    }
-
-    const testResponse = await fetch("/api/notifications/test", { method: "POST" });
-    const testData = await readJsonResponse(testResponse);
-    if (!testResponse.ok) {
-      throw new Error(testData.errors?.[0]?.message || "El token se guardo, pero no se pudo enviar una prueba.");
-    }
-    showMessage("Notificaciones activadas en este dispositivo.", "ok");
-  } catch (err) {
-    showMessage(err.message, "error");
-  } finally {
-    button.disabled = false;
-    setButtonContent(button, "bell", "Activar notificaciones");
-  }
 }
 
 function restoreState() {
@@ -622,46 +545,17 @@ function buildHistoryTable(records) {
       <td>${escapeHtml(record.filename)}</td>
       <td>${escapeHtml(record.rowCount)}</td>
       <td>
-        <div class="table-actions">
-        <button class="mini" data-icon="bell" type="button" data-notify-payment="${record.id}" data-history-label="${escapeAttr(record.invoiceNumber || record.filename)}">Notificar pago</button>
         <button class="mini danger-mini" data-icon="trash" type="button" data-delete-history="${record.id}" data-history-label="${escapeAttr(record.invoiceNumber || record.filename)}">Eliminar</button>
-        </div>
       </td>
     `;
     body.append(row);
   });
   applyStaticIcons(table);
-  table.querySelectorAll("[data-notify-payment]").forEach((button) => {
-    button.addEventListener("click", () => notifyPayment(Number(button.dataset.notifyPayment), button.dataset.historyLabel));
-  });
   table.querySelectorAll("[data-delete-history]").forEach((button) => {
     button.addEventListener("click", () => deleteHistoryRecord(Number(button.dataset.deleteHistory), button.dataset.historyLabel));
   });
   wrapper.append(table);
   return wrapper;
-}
-
-async function notifyPayment(recordId, label) {
-  if (!currentUser?.isSuperAdmin) {
-    showMessage("Solo el super admin puede notificar pagos.", "error");
-    return;
-  }
-  const detail = clean(label) || "esta factura";
-  const amount = window.prompt(`Valor pagado para ${detail} (opcional):`, "");
-  if (amount === null) return;
-  try {
-    const response = await fetch(`/api/history/${recordId}/notify-payment`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount })
-    });
-    const data = await readJsonResponse(response);
-    if (!response.ok) throw new Error(data.errors?.[0]?.message || "No se pudo enviar la notificacion.");
-    const sent = data.result?.sent || 0;
-    showMessage(sent ? `Notificacion enviada para ${detail}.` : data.result?.message || "No habia dispositivos activos para notificar.", sent ? "ok" : "error");
-  } catch (err) {
-    showMessage(err.message, "error");
-  }
 }
 
 async function deleteHistoryRecord(recordId, label) {

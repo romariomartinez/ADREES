@@ -6,10 +6,6 @@
       "destination": "/static/index.html"
     },
     {
-      "source": "/firebase-messaging-sw.js",
-      "destination": "/static/firebase-messaging-sw.js"
-    },
-    {
       "source": "/api/:path*",
       "destination": "/api/index"
     }
