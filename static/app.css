@@ -528,6 +528,10 @@ button {
   --tone: #48c7f1;
 }
 
+.tone-red {
+  --tone: #ff6b70;
+}
+
 .workspace {
   min-width: 0;
   padding: 22px 28px 42px;
