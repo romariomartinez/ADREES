@@ -23,6 +23,8 @@ const STORAGE_KEY = "adres-fur-assistant";
 const INVOICE_PREFIX = "FVEE";
 const ICONS = {
   activity: '<path d="M3 12h4l3 8 4-16 3 8h4"/>',
+  alert: '<path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
   clear: '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>',
   copy: '<rect x="8" y="8" width="10" height="10" rx="2"/><path d="M6 16H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
   download: '<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>',
@@ -35,7 +37,8 @@ const ICONS = {
   search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
   sync: '<path d="M21 12a9 9 0 0 0-15.3-6.4L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 15.3 6.4L21 16"/><path d="M16 16h5v5"/>',
   trash: '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/>',
-  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/>'
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/>',
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'
 };
 const DIVIPOLA_FIELD_NAMES = new Set([
   "Codigo_municipio_residencia_victima",
@@ -196,9 +199,16 @@ function bindChrome() {
     });
   });
 
-  document.querySelector("#clear-form").addEventListener("click", () => {
+  document.querySelector("#clear-form").addEventListener("click", async () => {
     const label = schema.templates[activeTemplate].title;
-    if (!window.confirm(`Limpiar datos de ${label}?`)) return;
+    const confirmed = await confirmAction({
+      title: "Limpiar datos",
+      message: `Se borraran los datos cargados de ${label}.`,
+      confirmText: "Limpiar",
+      confirmIcon: "clear",
+      kind: "danger"
+    });
+    if (!confirmed) return;
     if (activeTemplate === "fur") state.fur = {};
     if (activeTemplate === "ser") state.ser = [{}];
     activeDraftId[activeTemplate] = null;
@@ -564,7 +574,14 @@ async function deleteHistoryRecord(recordId, label) {
     return;
   }
   const detail = clean(label) || "este registro";
-  if (!window.confirm(`Eliminar del historial ${detail}?`)) return;
+  const confirmed = await confirmAction({
+    title: "Eliminar historial",
+    message: `Se eliminara del historial: ${detail}.`,
+    confirmText: "Eliminar",
+    confirmIcon: "trash",
+    kind: "danger"
+  });
+  if (!confirmed) return;
   try {
     const response = await fetch(`/api/history/${recordId}`, { method: "DELETE" });
     const data = await readJsonResponse(response);
@@ -741,7 +758,14 @@ async function loadDraft(draftId) {
 }
 
 async function deleteDraft(draftId) {
-  if (!window.confirm("Eliminar este borrador?")) return;
+  const confirmed = await confirmAction({
+    title: "Eliminar borrador",
+    message: "Este borrador se eliminara de forma permanente.",
+    confirmText: "Eliminar",
+    confirmIcon: "trash",
+    kind: "danger"
+  });
+  if (!confirmed) return;
   try {
     const response = await fetch(`/api/drafts/${draftId}`, { method: "DELETE" });
     const data = await readJsonResponse(response);
@@ -1930,9 +1954,18 @@ async function importSerPdf(event) {
     showMessage("Selecciona un archivo PDF.", "error");
     return;
   }
-  if (serHasFilledServices() && !window.confirm("Importar este PDF reemplazara los servicios actuales del SER. Continuar?")) {
-    event.target.value = "";
-    return;
+  if (serHasFilledServices()) {
+    const confirmed = await confirmAction({
+      title: "Reemplazar servicios",
+      message: "Importar este PDF reemplazara los servicios actuales del SER.",
+      confirmText: "Importar PDF",
+      confirmIcon: "file",
+      kind: "warning"
+    });
+    if (!confirmed) {
+      event.target.value = "";
+      return;
+    }
   }
 
   const button = document.querySelector("#import-ser-pdf");
@@ -2026,6 +2059,78 @@ function showMessage(text, kind) {
   message.textContent = text;
   message.className = `message ${kind}`;
   message.hidden = false;
+}
+
+function confirmAction(options = {}) {
+  const {
+    title = "Confirmar accion",
+    message: dialogMessage = "Quieres continuar?",
+    confirmText = "Aceptar",
+    cancelText = "Cancelar",
+    confirmIcon = "check",
+    cancelIcon = "x",
+    kind = "warning"
+  } = options;
+  closeProfileMenu();
+
+  return new Promise((resolve) => {
+    const previousFocus = document.activeElement;
+    const overlay = document.createElement("div");
+    const dialogId = `confirm-title-${Date.now()}`;
+    overlay.className = `confirm-overlay confirm-${kind}`;
+    overlay.innerHTML = `
+      <section class="confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="${dialogId}">
+        <div class="confirm-icon">${iconMarkup(kind === "danger" ? "trash" : "alert")}</div>
+        <div class="confirm-copy">
+          <h2 id="${dialogId}">${escapeHtml(title)}</h2>
+          <p>${escapeHtml(dialogMessage)}</p>
+        </div>
+        <div class="confirm-actions">
+          <button class="secondary confirm-cancel" type="button">${iconMarkup(cancelIcon)}<span>${escapeHtml(cancelText)}</span></button>
+          <button class="primary confirm-accept" type="button">${iconMarkup(confirmIcon)}<span>${escapeHtml(confirmText)}</span></button>
+        </div>
+      </section>
+    `;
+
+    const dialog = overlay.querySelector(".confirm-dialog");
+    const cancel = overlay.querySelector(".confirm-cancel");
+    const accept = overlay.querySelector(".confirm-accept");
+    const close = (value) => {
+      document.removeEventListener("keydown", onKeydown);
+      overlay.remove();
+      document.body.classList.remove("modal-open");
+      if (previousFocus && typeof previousFocus.focus === "function" && document.contains(previousFocus)) {
+        previousFocus.focus();
+      }
+      resolve(value);
+    };
+    const onKeydown = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close(false);
+      }
+      if (event.key !== "Tab") return;
+      const focusable = [cancel, accept];
+      const index = focusable.indexOf(document.activeElement);
+      if (event.shiftKey && index <= 0) {
+        event.preventDefault();
+        accept.focus();
+      } else if (!event.shiftKey && index === focusable.length - 1) {
+        event.preventDefault();
+        cancel.focus();
+      }
+    };
+
+    cancel.addEventListener("click", () => close(false));
+    accept.addEventListener("click", () => close(true));
+    overlay.addEventListener("click", (event) => {
+      if (!dialog.contains(event.target)) close(false);
+    });
+    document.addEventListener("keydown", onKeydown);
+    document.body.classList.add("modal-open");
+    document.body.append(overlay);
+    accept.focus();
+  });
 }
 
 function hideMessage() {
