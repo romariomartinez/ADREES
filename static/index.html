@@ -8,31 +8,70 @@
   </head>
   <body>
     <section id="auth-screen" class="auth-screen">
-      <form id="auth-form" class="auth-card">
-        <div class="brand auth-brand">
-          <img class="brand-logo auth-logo" src="/static/assets/hospital-logo.png" alt="Logo Hospital Camilo Villazon Pumarejo">
-          <div>
-            <strong>HOSPITAL CAMILO VILLAZON PUMAREJO</strong>
-            <span>AREA DE RADICACION</span>
-            <small id="auth-subtitle">Ingreso al sistema de radicacion</small>
+      <div class="auth-layout">
+        <aside class="auth-visual" aria-label="Area de radicacion">
+          <img class="brand-logo auth-visual-logo" src="/static/assets/hospital-logo.png" alt="Logo Hospital Camilo Villazon Pumarejo">
+          <div class="auth-wall-text">AREA DE<br>RADICACION</div>
+          <div class="auth-welcome">
+            <p>Bienvenido</p>
+            <span>Accede al sistema de radicacion de facturacion hospitalaria.</span>
           </div>
-        </div>
-        <label class="auth-field">
-          <span>Usuario</span>
-          <input id="auth-username" autocomplete="username" required>
-        </label>
-        <label class="auth-field" id="display-name-field" hidden>
-          <span>Nombre del facturador</span>
-          <input id="auth-display-name" autocomplete="name">
-        </label>
-        <label class="auth-field">
-          <span>Clave</span>
-          <input id="auth-password" type="password" autocomplete="current-password" required>
-        </label>
-        <div id="auth-message" class="auth-message" hidden></div>
-        <button id="auth-submit" class="primary" type="submit">Ingresar</button>
-        <button id="auth-toggle" class="secondary" type="button">Crear usuario nuevo</button>
-      </form>
+          <div class="auth-benefits">
+            <div>
+              <span class="auth-benefit-icon">✓</span>
+              <strong>Seguro</strong>
+              <small>Tus datos estan protegidos con estandares de seguridad.</small>
+            </div>
+            <div>
+              <span class="auth-benefit-icon">↻</span>
+              <strong>Rapido</strong>
+              <small>Gestiona tus radicaciones de forma agil y eficiente.</small>
+            </div>
+            <div>
+              <span class="auth-benefit-icon">▣</span>
+              <strong>Confiable</strong>
+              <small>Sistema disenado para el sector salud.</small>
+            </div>
+          </div>
+          <div class="auth-help">
+            <span class="auth-benefit-icon">?</span>
+            <div>
+              <strong>Necesitas ayuda?</strong>
+              <small>Contacta al soporte tecnico</small>
+            </div>
+          </div>
+        </aside>
+
+        <form id="auth-form" class="auth-card">
+          <div class="brand auth-brand">
+            <img class="brand-logo auth-logo" src="/static/assets/hospital-logo.png" alt="Logo Hospital Camilo Villazon Pumarejo">
+            <div>
+              <strong>HOSPITAL CAMILO VILLAZON PUMAREJO</strong>
+              <span>AREA DE RADICACION</span>
+              <small id="auth-subtitle">Ingreso al sistema de radicacion</small>
+            </div>
+          </div>
+          <label class="auth-field">
+            <span>Usuario</span>
+            <input id="auth-username" autocomplete="username" placeholder="Ingresa tu usuario" required>
+          </label>
+          <label class="auth-field" id="display-name-field" hidden>
+            <span>Nombre del facturador</span>
+            <input id="auth-display-name" autocomplete="name" placeholder="Nombre completo">
+          </label>
+          <label class="auth-field">
+            <span>Clave</span>
+            <input id="auth-password" type="password" autocomplete="current-password" placeholder="Ingresa tu contrasena" required>
+          </label>
+          <div id="auth-message" class="auth-message" hidden></div>
+          <button id="auth-submit" class="primary" type="submit" data-icon="lock">Ingresar</button>
+          <button id="auth-toggle" class="secondary" type="button" hidden>Crear usuario nuevo</button>
+          <div class="auth-foot">
+            <span>Sistema seguro y confidencial</span>
+            <span>Cumplimos con estandares de calidad</span>
+          </div>
+        </form>
+      </div>
     </section>
 
     <div id="app-shell" class="shell" hidden>

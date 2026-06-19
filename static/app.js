@@ -40,6 +40,7 @@ const ICONS = {
   history: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3 2"/>',
   home: '<path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/>',
   headset: '<path d="M3 13a9 9 0 0 1 18 0"/><path d="M5 13v4a2 2 0 0 0 2 2h1v-8H7a2 2 0 0 0-2 2Z"/><path d="M19 13v4a2 2 0 0 1-2 2h-1v-8h1a2 2 0 0 1 2 2Z"/><path d="M13 21h2a4 4 0 0 0 4-4"/>',
+  lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
   logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
   package: '<path d="m21 8-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/><path d="m7.5 5.5 9 5"/>',
   pill: '<path d="m10.5 20.5 10-10a4.2 4.2 0 0 0-6-6l-10 10a4.2 4.2 0 0 0 6 6Z"/><path d="m8.5 10.5 5 5"/>',
@@ -328,7 +329,7 @@ function renderAuthMode() {
   const setup = authMode === "setup";
   displayNameField.hidden = !setup;
   toggle.hidden = true;
-  submit.textContent = setup ? "Crear super admin" : "Ingresar";
+  setButtonContent(submit, setup ? "users" : "lock", setup ? "Crear super admin" : "Ingresar");
   authSubtitle.textContent = setup ? "Configuracion inicial del super admin" : "Ingreso al sistema de radicacion";
   document.querySelector("#auth-password").autocomplete = setup ? "new-password" : "current-password";
   authMessage.hidden = true;
