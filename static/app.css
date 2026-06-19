@@ -115,7 +115,7 @@ button {
 
 .shell {
   display: grid;
-  grid-template-columns: 374px minmax(0, 1fr);
+  grid-template-columns: 318px minmax(0, 1fr);
   min-height: 100vh;
 }
 
@@ -125,7 +125,7 @@ button {
     radial-gradient(circle at 12% 18%, rgba(84, 134, 218, 0.16), transparent 32%),
     linear-gradient(160deg, #061424 0%, #0b1f33 48%, #06111f 100%);
   border-right: 1px solid rgba(99, 167, 207, 0.16);
-  padding: 28px 20px;
+  padding: 20px 16px;
   position: sticky;
   top: 0;
   height: 100vh;
@@ -172,10 +172,10 @@ button {
 .profile-brand {
   position: relative;
   display: grid;
-  grid-template-columns: 76px minmax(0, 1fr);
+  grid-template-columns: 60px minmax(0, 1fr);
   align-items: center;
-  column-gap: 18px;
-  row-gap: 20px;
+  column-gap: 14px;
+  row-gap: 14px;
 }
 
 .profile-menu-wrap {
@@ -185,14 +185,14 @@ button {
 .profile-avatar {
   grid-column: 1;
   grid-row: 1;
-  width: 76px;
-  height: 76px;
-  border-radius: 20px;
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
   border: 1px solid rgba(88, 235, 218, 0.32);
   background: linear-gradient(135deg, #28b8aa 0%, #34c0a9 100%);
-  box-shadow: 0 18px 34px rgba(27, 201, 185, 0.24), inset 0 0 0 4px rgba(8, 28, 45, 0.5);
+  box-shadow: 0 14px 26px rgba(27, 201, 185, 0.22), inset 0 0 0 3px rgba(8, 28, 45, 0.5);
   cursor: pointer;
-  font-size: 34px;
+  font-size: 28px;
   letter-spacing: 0;
 }
 
@@ -214,9 +214,9 @@ button {
   z-index: 20;
   min-width: 0;
   border: 1px solid rgba(160, 186, 215, 0.18);
-  border-radius: 14px;
+  border-radius: 12px;
   background: rgba(20, 42, 67, 0.78);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 16px 34px rgba(0, 0, 0, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 12px 24px rgba(0, 0, 0, 0.16);
   padding: 0;
   backdrop-filter: blur(10px);
 }
@@ -225,23 +225,23 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  min-height: 58px;
+  min-height: 48px;
   border: 0;
-  border-radius: 14px;
+  border-radius: 12px;
   background: transparent;
   color: #dce9f7;
-  padding: 0 16px;
+  padding: 0 13px;
   text-align: left;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 720;
 }
 
 .profile-menu-item::after {
-  content: "›";
+  content: ">";
   color: #b8c9da;
-  font-size: 30px;
+  font-size: 18px;
   line-height: 1;
 }
 
@@ -276,7 +276,7 @@ button {
 
 .sidebar .brand strong {
   color: #ffffff;
-  font-size: 24px;
+  font-size: 20px;
   line-height: 1.15;
   letter-spacing: 0;
 }
@@ -289,16 +289,16 @@ button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 7px;
   color: #aebbd0;
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 650;
 }
 
 #current-role .icon {
-  width: 20px;
-  height: 20px;
-  flex-basis: 20px;
+  width: 17px;
+  height: 17px;
+  flex-basis: 17px;
   color: var(--accent);
 }
 
@@ -320,23 +320,23 @@ button {
 
 .tabs {
   display: grid;
-  gap: 8px;
-  margin: 28px 0 30px;
+  gap: 7px;
+  margin: 22px 0 24px;
 }
 
 .tab {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
+  grid-template-columns: 34px minmax(0, 1fr);
   align-items: center;
-  gap: 14px;
-  min-height: 74px;
+  gap: 11px;
+  min-height: 58px;
   border: 1px solid rgba(163, 193, 224, 0.18);
   background: rgba(23, 45, 70, 0.72);
   color: #aebbd0;
-  border-radius: 14px;
-  padding: 0 16px;
+  border-radius: 12px;
+  padding: 0 12px;
   text-align: left;
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 720;
   line-height: 1.25;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -363,16 +363,16 @@ button {
   position: absolute;
   inset: -1px auto -1px -1px;
   width: 4px;
-  border-radius: 14px 0 0 14px;
+  border-radius: 12px 0 0 12px;
   background: var(--accent);
 }
 
 .tab .icon {
-  width: 42px;
-  height: 42px;
-  flex-basis: 42px;
-  padding: 10px;
-  border-radius: 12px;
+  width: 34px;
+  height: 34px;
+  flex-basis: 34px;
+  padding: 8px;
+  border-radius: 10px;
   color: #c6fff7;
   background: rgba(50, 180, 180, 0.18);
 }
@@ -384,23 +384,23 @@ button {
 
 .status-panel {
   border-top: 1px solid rgba(172, 199, 225, 0.14);
-  padding-top: 24px;
+  padding-top: 18px;
 }
 
 .status-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   color: #ffffff;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 760;
-  margin-bottom: 18px;
+  margin-bottom: 13px;
 }
 
 .status-head strong {
   color: #ffffff;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .status-head strong.has-errors {
@@ -414,39 +414,39 @@ button {
 #status-title {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 #status-title .icon {
-  width: 22px;
-  height: 22px;
-  flex-basis: 22px;
+  width: 18px;
+  height: 18px;
+  flex-basis: 18px;
   color: #ffffff;
 }
 
 .section-list {
   display: grid;
-  gap: 12px;
+  gap: 9px;
 }
 
 .section-chip {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) auto;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
-  min-height: 82px;
-  padding: 14px;
-  border-radius: 14px;
+  gap: 11px;
+  min-height: 64px;
+  padding: 11px;
+  border-radius: 12px;
   border: 1px solid rgba(163, 193, 224, 0.16);
   background: rgba(18, 40, 64, 0.74);
   color: #dce9f7;
   font-size: 13px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045), 0 12px 28px rgba(0, 0, 0, 0.13);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045), 0 8px 18px rgba(0, 0, 0, 0.12);
 }
 
 .section-chip strong {
   color: var(--tone);
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -462,35 +462,35 @@ button {
 .section-icon {
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
   color: var(--tone);
   background: color-mix(in srgb, var(--tone) 22%, transparent);
 }
 
 .section-icon .icon {
-  width: 25px;
-  height: 25px;
-  flex-basis: 25px;
+  width: 21px;
+  height: 21px;
+  flex-basis: 21px;
 }
 
 .section-main {
   display: grid;
-  gap: 12px;
+  gap: 8px;
   min-width: 0;
 }
 
 .section-name {
   color: #ffffff;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 760;
   line-height: 1.2;
 }
 
 .section-progress {
   display: block;
-  height: 7px;
+  height: 5px;
   overflow: hidden;
   border-radius: 999px;
   background: rgba(125, 154, 184, 0.22);
