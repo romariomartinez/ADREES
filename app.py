@@ -105,22 +105,26 @@ FREQUENT_FIELD_NAMES = {
     "Direccion_de_residencia_del_propietario",
     "Direccion_de_residencia_del_conductor",
 }
-PDF_UPLOAD_LIMIT = 8 * 1024 * 1024
+PDF_UPLOAD_LIMIT_MB = int(os.environ.get("ADRES_PDF_UPLOAD_LIMIT_MB", "50"))
+PDF_UPLOAD_LIMIT = PDF_UPLOAD_LIMIT_MB * 1024 * 1024
 PDF_MONEY_RE = r"(?:\d{1,3}(?:[.,]\d{3})+|\d+)(?:[.,]\d{2})"
+PDF_DATE_RE = r"(?:\d{1,2}[-/][A-Za-z]{3,}(?:[-/]\d{2,4})?|\d{1,2}/\d{1,2}/\d{2,4})"
 PDF_MONEY_LINE_RE = re.compile(rf"^{PDF_MONEY_RE}$")
 PDF_INTEGER_LINE_RE = re.compile(r"^\d+$")
 PDF_DATE_TIME_LINE_RE = re.compile(
-    r"^\d{1,2}[-/][A-Za-z]{3,}(?:[-/]\d{2,4})?\s+\d{1,2}:\d{2}$",
+    rf"^{PDF_DATE_RE}\s+\d{{1,2}}:\d{{2}}$",
     re.IGNORECASE,
 )
+PDF_DATE_TIME_RE = re.compile(rf"{PDF_DATE_RE}\s+\d{{1,2}}:\d{{2}}", re.IGNORECASE)
 PDF_ITEM_TAIL_RE = re.compile(
-    rf"\b(?P<date>\d{{1,2}}[-/][A-Za-z]{{3,}}(?:[-/]\d{{2,4}})?|\d{{1,2}}/\d{{1,2}}/\d{{2,4}})"
+    rf"\b(?P<date>{PDF_DATE_RE})"
     rf"\s+(?P<time>\d{{1,2}}:\d{{2}})"
     rf"\s+(?P<qty>\d+(?:[.,]\d+)?)"
     rf"\s+(?P<moneys>(?:{PDF_MONEY_RE}\s*)+)$",
     re.IGNORECASE,
 )
 PDF_CODE_RE = re.compile(r"^[A-Z0-9][A-Z0-9.-]{1,19}$", re.IGNORECASE)
+PDF_INVOICE_TOKEN_RE = re.compile(rf"^{re.escape(INVOICE_PREFIX)}\d+$", re.IGNORECASE)
 PDF_HEADER_RE = re.compile(r"\bCODIGO\b|\bCOD-?2\b|\bDESCRIPCION\b|\bFECHA/?HORA\b", re.IGNORECASE)
 PDF_IGNORE_PREFIXES = (
     "AUTORIZACION:",
@@ -132,6 +136,40 @@ PDF_IGNORE_PREFIXES = (
     "COPAGO",
     "CUOTA ",
     "SON ",
+)
+PDF_CONTEXT_PREFIXES = (
+    "[",
+    "A PAGAR",
+    "ASEG:",
+    "AUTORIZACION",
+    "BARRIO:",
+    "CALLE ",
+    "CLIENTE:",
+    "CONTRATO:",
+    "CORREO ",
+    "CUFE:",
+    "DIRECCION:",
+    "E.S.E",
+    "EMPRESA:",
+    "ESP.",
+    "FACTURA ",
+    "FAX:",
+    "FECHA ",
+    "FIRMA DIGITAL:",
+    "IDENTIFICACION:",
+    "IMPRESO POR:",
+    "MAIL:",
+    "NIT ",
+    "NIVEL:",
+    "PAG ",
+    "POR CONCEPTO",
+    "PUEBLO BELLO",
+    "R-FAST",
+    "REG.",
+    "REGIMEN:",
+    "RESIDE:",
+    "TELEFONO",
+    "USUARIO:",
 )
 
 
@@ -1220,9 +1258,22 @@ def is_pdf_auxiliary_line(line: str) -> bool:
     return upper.startswith(("AUTORIZACION:", "AUTORIZACION "))
 
 
+def is_pdf_context_line(line: str) -> bool:
+    upper = line.upper()
+    if should_ignore_pdf_line(line):
+        return True
+    if PDF_INVOICE_TOKEN_RE.match(upper):
+        return True
+    return any(upper.startswith(prefix) for prefix in PDF_CONTEXT_PREFIXES)
+
+
 def is_pdf_code_token(value: str) -> bool:
     token = clean(value).strip(".,;:")
     if not token or PDF_MONEY_LINE_RE.match(clean(value)):
+        return False
+    if PDF_INVOICE_TOKEN_RE.match(token):
+        return False
+    if token.isdigit() and len(token) > 8:
         return False
     return bool(PDF_CODE_RE.match(token) and any(char.isdigit() for char in token))
 
@@ -1243,11 +1294,7 @@ def money_to_digits(value: str) -> str:
     return digits or "0"
 
 
-def parse_pdf_item_line(line: str) -> dict | None:
-    match = PDF_ITEM_TAIL_RE.search(line)
-    if not match:
-        return None
-    prefix = line[: match.start()].strip()
+def parse_pdf_item_prefix(prefix: str) -> tuple[str, str, str] | None:
     tokens = prefix.split()
     if len(tokens) < 2 or not is_pdf_code_token(tokens[0]):
         return None
@@ -1261,17 +1308,96 @@ def parse_pdf_item_line(line: str) -> dict | None:
     description = clean(" ".join(description_tokens))
     if not description:
         return None
+    return code[:20], cod2[:20], description[:240]
+
+
+def infer_pdf_money_pair(money_values: list[str], quantity: str, *, total_first: bool) -> tuple[str, str]:
+    values = [money_to_digits(value) for value in money_values if money_to_digits(value)]
+    if not values:
+        return "", ""
+    if len(values) == 1:
+        unit_value = values[0]
+        quantity_int = as_int(quantity)
+        unit_int = as_int(unit_value)
+        total_value = (
+            str(unit_int * quantity_int)
+            if unit_int is not None and quantity_int is not None
+            else unit_value
+        )
+        return unit_value, total_value
+
+    first, second = values[0], values[1]
+    first_int = as_int(first)
+    second_int = as_int(second)
+    quantity_int = as_int(quantity)
+    if quantity_int is not None and first_int is not None and second_int is not None:
+        if second_int * quantity_int == first_int:
+            return second, first
+        if first_int * quantity_int == second_int:
+            return first, second
+
+    if total_first:
+        return second, first
+    return values[-2], values[-1]
+
+
+def parse_pdf_item_values_before_date_line(line: str) -> dict | None:
+    for date_match in reversed(list(PDF_DATE_TIME_RE.finditer(line))):
+        after_date = line[date_match.end() :].strip()
+        if after_date and not re.fullmatch(rf"(?:{PDF_MONEY_RE}\s*)+", after_date):
+            continue
+
+        before_date = line[: date_match.start()].rstrip()
+        quantity_match = re.search(r"(?P<qty>\d+(?:[.,]\d+)?)\s*$", before_date)
+        if not quantity_match:
+            continue
+
+        before_quantity = before_date[: quantity_match.start()].rstrip()
+        money_match = re.search(rf"(?P<moneys>(?:{PDF_MONEY_RE}\s*)+)$", before_quantity)
+        if not money_match:
+            continue
+
+        parsed_prefix = parse_pdf_item_prefix(before_quantity[: money_match.start()].strip())
+        if not parsed_prefix:
+            continue
+
+        code, cod2, description = parsed_prefix
+        quantity = money_to_digits(quantity_match.group("qty"))
+        money_values = re.findall(PDF_MONEY_RE, money_match.group("moneys"))
+        unit_value, total_value = infer_pdf_money_pair(money_values, quantity, total_first=True)
+        if not unit_value or not total_value:
+            continue
+
+        return {
+            "code": code,
+            "cod2": cod2,
+            "description": description,
+            "quantity": quantity,
+            "unitValue": unit_value,
+            "totalValue": total_value,
+        }
+    return None
+
+
+def parse_pdf_item_line(line: str) -> dict | None:
+    match = PDF_ITEM_TAIL_RE.search(line)
+    if not match:
+        return parse_pdf_item_values_before_date_line(line)
+
+    parsed_prefix = parse_pdf_item_prefix(line[: match.start()].strip())
+    if not parsed_prefix:
+        return None
+    code, cod2, description = parsed_prefix
 
     money_values = re.findall(PDF_MONEY_RE, match.group("moneys"))
     if not money_values:
         return None
-    unit_value = money_to_digits(money_values[-2] if len(money_values) >= 2 else money_values[-1])
-    total_value = money_to_digits(money_values[-1])
     quantity = money_to_digits(match.group("qty"))
+    unit_value, total_value = infer_pdf_money_pair(money_values, quantity, total_first=False)
     return {
-        "code": code[:20],
-        "cod2": cod2[:20],
-        "description": description[:240],
+        "code": code,
+        "cod2": cod2,
+        "description": description,
         "quantity": quantity,
         "unitValue": unit_value,
         "totalValue": total_value,
@@ -1301,6 +1427,10 @@ def parse_ser_pdf_vertical_items(text: str) -> list[dict]:
     items: list[dict] = []
     index = 0
     while index < len(lines):
+        if is_pdf_context_line(lines[index]):
+            index += 1
+            continue
+
         code = clean(lines[index]).strip(".,;:").upper()
         if not is_pdf_code_token(code):
             index += 1
@@ -1315,7 +1445,7 @@ def parse_ser_pdf_vertical_items(text: str) -> list[dict]:
         description_parts: list[str] = []
         while cursor < len(lines):
             line = lines[cursor]
-            if should_ignore_pdf_line(line):
+            if is_pdf_context_line(line):
                 cursor += 1
                 continue
             if PDF_MONEY_LINE_RE.match(line):
@@ -1372,34 +1502,38 @@ def parse_ser_pdf_vertical_items(text: str) -> list[dict]:
 
 def parse_ser_pdf_items(text: str) -> list[dict]:
     items: list[dict] = []
-    current: dict | None = None
     pending_prefix = ""
 
     for raw_line in text.splitlines():
         line = normalize_pdf_line(raw_line)
-        if should_ignore_pdf_line(line):
+        if is_pdf_context_line(line):
+            continue
+
+        tokens = line.split()
+        line_starts_code = bool(tokens and is_pdf_code_token(tokens[0]))
+        if pending_prefix and line_starts_code:
+            item = parse_pdf_item_line(line)
+            if item:
+                items.append(item)
+                pending_prefix = ""
+                continue
+            pending_prefix = line[:1000]
             continue
 
         candidate = f"{pending_prefix} {line}".strip() if pending_prefix else line
         item = parse_pdf_item_line(candidate)
         if item:
             items.append(item)
-            current = item
             pending_prefix = ""
             continue
 
-        tokens = line.split()
-        if tokens and is_pdf_code_token(tokens[0]):
+        if line_starts_code:
             pending_prefix = candidate[:1000]
-            current = None
             continue
 
         if pending_prefix:
             pending_prefix = candidate[:1000]
             continue
-
-        if current:
-            current["description"] = clean(f"{current['description']} {line}")[:240]
 
     vertical_items = parse_ser_pdf_vertical_items(text)
     return vertical_items if len(vertical_items) > len(items) else items
@@ -1929,7 +2063,7 @@ class AppHandler(BaseHTTPRequestHandler):
         if not length:
             raise ValueError("No se recibio ningun archivo.")
         if length > PDF_UPLOAD_LIMIT:
-            raise ValueError("El PDF es demasiado grande. Usa un archivo menor a 8 MB.")
+            raise ValueError(f"El PDF es demasiado grande. Usa un archivo menor a {PDF_UPLOAD_LIMIT_MB} MB.")
         raw = self.rfile.read(length)
         return parse_multipart_file(raw, self.headers.get("Content-Type", ""), field_name)
 
