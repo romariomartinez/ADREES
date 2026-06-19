@@ -39,8 +39,8 @@
       <aside class="sidebar">
         <div class="brand profile-brand">
           <div class="profile-menu-wrap">
-            <button id="profile-menu-button" class="brand-mark profile-avatar" type="button" aria-label="Abrir menu de perfil" aria-haspopup="true" aria-expanded="false">A</button>
-            <div id="profile-menu" class="profile-menu" hidden>
+            <button id="profile-menu-button" class="brand-mark profile-avatar" type="button" aria-label="Perfil activo" aria-haspopup="true" aria-expanded="true">A</button>
+            <div id="profile-menu" class="profile-menu">
               <button id="logout-button" class="profile-menu-item" data-icon="logout" type="button">Cerrar sesion</button>
             </div>
           </div>
@@ -50,12 +50,12 @@
           </div>
         </div>
         <nav class="tabs" aria-label="Formularios">
-          <button class="tab active" data-template="fur" type="button">Plantilla_FUR_Primera_Vez.xlsx</button>
-          <button class="tab" data-template="ser" type="button">Plantilla_SER.xlsx</button>
+          <button class="tab active" data-icon="file" data-template="fur" type="button">Plantilla_FUR_Primera_Vez.xlsx</button>
+          <button class="tab" data-icon="file" data-template="ser" type="button">Plantilla_SER.xlsx</button>
         </nav>
         <div class="status-panel">
           <div class="status-head">
-            <span>Estado</span>
+            <span id="status-title">Estado</span>
             <strong id="global-status">Sin validar</strong>
           </div>
           <div id="section-list" class="section-list"></div>

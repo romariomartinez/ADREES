@@ -24,6 +24,10 @@ const INVOICE_PREFIX = "FVEE";
 const ICONS = {
   activity: '<path d="M3 12h4l3 8 4-16 3 8h4"/>',
   alert: '<path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  ambulance: '<path d="M10 17h4"/><path d="M3 17h2"/><path d="M19 17h2"/><path d="M5 17V7a2 2 0 0 1 2-2h8v12"/><path d="M15 9h3l3 4v4"/><path d="M8 9v4"/><path d="M6 11h4"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>',
+  arrowRight: '<path d="M5 12h14"/><path d="m13 6 6 6-6 6"/>',
+  calendar: '<path d="M8 2v4"/><path d="M16 2v4"/><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18"/>',
+  car: '<path d="M19 17h2l-2-6H5l-2 6h2"/><path d="M7 11l1.5-5h7L17 11"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>',
   check: '<path d="M20 6 9 17l-5-5"/>',
   clear: '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>',
   copy: '<rect x="8" y="8" width="10" height="10" rx="2"/><path d="M6 16H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
@@ -31,12 +35,16 @@ const ICONS = {
   drafts: '<path d="M4 4h16v16H4z"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h5"/>',
   file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/>',
   history: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 7v5l3 2"/>',
+  home: '<path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/>',
+  headset: '<path d="M3 13a9 9 0 0 1 18 0"/><path d="M5 13v4a2 2 0 0 0 2 2h1v-8H7a2 2 0 0 0-2 2Z"/><path d="M19 13v4a2 2 0 0 1-2 2h-1v-8h1a2 2 0 0 1 2 2Z"/><path d="M13 21h2a4 4 0 0 0 4-4"/>',
   logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
   plus: '<path d="M12 5v14"/><path d="M5 12h14"/>',
   save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8"/><path d="M7 3v5h8"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/>',
   sync: '<path d="M21 12a9 9 0 0 0-15.3-6.4L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 15.3 6.4L21 16"/><path d="M16 16h5v5"/>',
   trash: '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/>',
+  user: '<path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/>',
   users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/>',
   x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'
 };
@@ -289,14 +297,13 @@ function bindChrome() {
 }
 
 function toggleProfileMenu() {
-  const open = profileMenu.hidden;
-  profileMenu.hidden = !open;
-  profileMenuButton.setAttribute("aria-expanded", String(open));
+  profileMenu.hidden = false;
+  profileMenuButton.setAttribute("aria-expanded", "true");
 }
 
 function closeProfileMenu() {
-  profileMenu.hidden = true;
-  profileMenuButton.setAttribute("aria-expanded", "false");
+  profileMenu.hidden = false;
+  profileMenuButton.setAttribute("aria-expanded", "true");
 }
 
 function bindAuth() {
@@ -330,8 +337,12 @@ function showApp() {
   authScreen.hidden = true;
   appShell.hidden = false;
   currentUserLabel.textContent = currentUser ? currentUser.displayName : "Sin usuario";
-  currentRoleLabel.textContent = currentUser ? roleLabel(currentUser.role) : "Perfil activo";
+  currentRoleLabel.innerHTML = currentUser
+    ? `${iconMarkup("shield")}<span>${escapeHtml(roleLabel(currentUser.role))}</span>`
+    : "Perfil activo";
   profileMenuButton.textContent = userInitial(currentUser);
+  profileMenu.hidden = false;
+  profileMenuButton.setAttribute("aria-expanded", "true");
   document.querySelector("#admin-button").hidden = !currentUser?.isSuperAdmin;
   document.querySelector("#history-button").hidden = !currentUser?.isSuperAdmin;
 }
@@ -1910,20 +1921,66 @@ function toInt(value) {
   return Number.parseInt(text, 10);
 }
 
+function statusMeta(label, index = 0) {
+  const key = normalizeSearch(label);
+  if (key.includes("prestador")) return { icon: "user", tone: "blue" };
+  if (key.includes("victima")) return { icon: "users", tone: "purple" };
+  if (key.includes("evento")) return { icon: "calendar", tone: "orange" };
+  if (key.includes("vehiculo") || key.includes("soat")) return { icon: "car", tone: "amber" };
+  if (key.includes("propietario")) return { icon: "home", tone: "teal" };
+  if (key.includes("conductor")) return { icon: "user", tone: "cyan" };
+  if (key.includes("atencion")) return { icon: "headset", tone: "green" };
+  if (key.includes("remision")) return { icon: "arrowRight", tone: "blue" };
+  if (key.includes("transporte")) return { icon: "ambulance", tone: "orange" };
+  if (key.includes("procedimiento")) return { icon: "activity", tone: "purple" };
+  if (key.includes("valores")) return { icon: "download", tone: "green" };
+  const fallback = [
+    { icon: "file", tone: "blue" },
+    { icon: "activity", tone: "purple" },
+    { icon: "calendar", tone: "orange" },
+    { icon: "check", tone: "green" }
+  ];
+  return fallback[index % fallback.length];
+}
+
+function statusChipHtml({ label, done, required, errors: itemErrors = 0, meta }) {
+  const totalRequired = Math.max(required, 0);
+  const ratio = totalRequired ? Math.min(done / totalRequired, 1) : itemErrors ? 0 : 1;
+  const percent = Math.round(ratio * 100);
+  const count = totalRequired ? `${done}/${totalRequired}` : itemErrors ? `${itemErrors} error` : "OK";
+  return `
+    <span class="section-icon">${iconMarkup(meta.icon)}</span>
+    <span class="section-main">
+      <span class="section-name">${escapeHtml(label)}</span>
+      <span class="section-progress" aria-hidden="true"><span style="width: ${percent}%"></span></span>
+    </span>
+    <strong>${escapeHtml(count)}</strong>
+  `;
+}
+
 function renderStatus() {
   const total = errors.length;
   globalStatus.textContent = total ? `${total} error(es)` : "Listo";
+  globalStatus.className = total ? "has-errors" : "is-ready";
+  document.querySelector("#status-title").innerHTML = `${iconMarkup("activity")}<span>Estado</span>`;
   sectionList.replaceChildren();
 
   if (activeTemplate === "fur") {
     const sections = groupVisibleFields(schema.templates.fur.fields, state.fur, 1, "fur");
-    Object.keys(sections).forEach((section) => {
+    Object.keys(sections).forEach((section, index) => {
       const required = getSectionRequired(section, state.fur, 1, "fur");
       const done = required.filter((field) => clean(state.fur[field.name])).length;
+      const complete = required.length && done === required.length;
+      const meta = statusMeta(section, index);
       const chip = document.createElement("div");
-      chip.className = "section-chip";
-      chip.classList.add(required.length && done === required.length ? "is-ok" : "has-error");
-      chip.innerHTML = `<span>${escapeHtml(section)}</span><strong>${done}/${required.length}</strong>`;
+      chip.className = `section-chip tone-${meta.tone}`;
+      chip.classList.add(complete ? "is-ok" : "has-error");
+      chip.innerHTML = statusChipHtml({
+        label: section,
+        done,
+        required: required.length,
+        meta
+      });
       sectionList.append(chip);
     });
     return;
@@ -1932,10 +1989,17 @@ function renderStatus() {
   state.ser.forEach((row, index) => {
     const rowNumber = index + 1;
     const rowErrors = errors.filter((item) => item.row === rowNumber).length;
+    const meta = statusMeta("Servicio", index);
     const chip = document.createElement("div");
-    chip.className = "section-chip";
+    chip.className = `section-chip tone-${meta.tone}`;
     chip.classList.add(rowErrors ? "has-error" : "is-ok");
-    chip.innerHTML = `<span>Servicio ${rowNumber}</span><strong>${rowErrors ? `${rowErrors} error` : "OK"}</strong>`;
+    chip.innerHTML = statusChipHtml({
+      label: `Servicio ${rowNumber}`,
+      done: rowErrors ? 0 : 1,
+      required: 1,
+      errors: rowErrors,
+      meta
+    });
     sectionList.append(chip);
   });
 }
