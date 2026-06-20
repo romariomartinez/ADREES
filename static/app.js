@@ -108,6 +108,7 @@ const eyebrow = document.querySelector("#eyebrow");
 const message = document.querySelector("#message");
 const sectionList = document.querySelector("#section-list");
 const globalStatus = document.querySelector("#global-status");
+const statusPanelLabel = document.querySelector("#status-panel-label");
 const appShell = document.querySelector("#app-shell");
 const authScreen = document.querySelector("#auth-screen");
 const authForm = document.querySelector("#auth-form");
@@ -495,6 +496,7 @@ function render() {
   errors = validateActive();
 
   const template = schema.templates[activeTemplate];
+  appShell.dataset.template = activeTemplate;
   title.textContent = template.title;
   eyebrow.textContent = template.mode === "single" ? "Reclamacion" : "Servicios reclamados";
   setFormActions("form");
@@ -1098,6 +1100,7 @@ function activityList(items, dateKey) {
 function renderFur() {
   const template = schema.templates.fur;
   const sections = groupVisibleFields(template.fields, state.fur, 1, "fur");
+  content.append(renderFurSteps(sections));
   Object.entries(sections).forEach(([section, fields]) => {
     const wrapper = document.createElement("section");
     wrapper.className = "form-section";
@@ -1111,10 +1114,30 @@ function renderFur() {
   });
 }
 
+function renderFurSteps(sections) {
+  const steps = document.createElement("div");
+  steps.className = "fur-steps";
+  Object.keys(sections).forEach((section, index) => {
+    const meta = statusMeta(section, index);
+    const step = document.createElement("div");
+    step.className = `fur-step tone-${meta.tone}`;
+    if (index === 0) step.classList.add("active");
+    step.innerHTML = `
+      <span class="section-icon" aria-hidden="true">${iconMarkup(meta.icon)}</span>
+      <span>
+        <strong>${index + 1} ${escapeHtml(section)}</strong>
+        <small>${escapeHtml(sectionSubtitle(section))}</small>
+      </span>
+    `;
+    steps.append(step);
+  });
+  return steps;
+}
+
 function renderSer() {
   const toolbar = document.createElement("div");
   toolbar.className = "row-toolbar";
-  toolbar.innerHTML = `<strong>${state.ser.length} servicio${state.ser.length === 1 ? "" : "s"}</strong>`;
+  toolbar.innerHTML = `<strong>${iconMarkup("file")}<span>${state.ser.length} servicio${state.ser.length === 1 ? "" : "s"}</span></strong>`;
   const add = document.createElement("button");
   add.className = "primary";
   add.type = "button";
@@ -1139,10 +1162,18 @@ function renderSer() {
     item.className = "service-row";
 
     const head = document.createElement("div");
-    head.className = "service-row-head";
     const rowErrors = errors.filter((error) => error.row === rowNumber);
-    head.innerHTML = `<strong>Servicio ${rowNumber}</strong><span>${rowErrors.length ? `${rowErrors.length} error(es)` : "Listo para revisar"}</span>`;
+    const meta = serviceTypeStatusMeta(row);
+    head.className = `service-row-head tone-${meta.tone}`;
+    head.innerHTML = `
+      <div class="service-row-title">
+        <span class="section-icon" aria-hidden="true">${iconMarkup(meta.icon)}</span>
+        <strong>Servicio ${rowNumber}</strong>
+      </div>
+      <span class="service-status ${rowErrors.length ? "has-errors" : "is-ready"}">${rowErrors.length ? `${rowErrors.length} error(es)` : "Listo para revisar"}</span>
+    `;
     const buttons = document.createElement("div");
+    buttons.className = "service-actions";
     const duplicate = document.createElement("button");
     duplicate.className = "mini";
     duplicate.type = "button";
@@ -1153,7 +1184,7 @@ function renderSer() {
       render();
     });
     const remove = document.createElement("button");
-    remove.className = "mini";
+    remove.className = "mini danger-mini";
     remove.type = "button";
     setButtonContent(remove, "trash", "Eliminar");
     remove.disabled = state.ser.length === 1;
@@ -1177,11 +1208,36 @@ function renderSer() {
 
 function sectionHeader(section, count, row, rowNumber, templateId) {
   const header = document.createElement("div");
-  header.className = "section-title";
+  const meta = statusMeta(section);
+  header.className = `section-title tone-${meta.tone}`;
   const required = getSectionRequired(section, row, rowNumber, templateId);
   const done = required.filter((field) => clean(row[field.name])).length;
-  header.innerHTML = `<h2>${escapeHtml(section)}</h2><span>${done}/${required.length || 0} obligatorios</span>`;
+  const complete = required.length && done === required.length;
+  header.innerHTML = `
+    <div class="section-title-main">
+      <span class="section-icon" aria-hidden="true">${iconMarkup(meta.icon)}</span>
+      <div>
+        <h2>${escapeHtml(section)}</h2>
+        <p>${escapeHtml(sectionSubtitle(section))}</p>
+      </div>
+    </div>
+    <span class="section-required-count ${complete ? "is-complete" : "has-errors"}">${done}/${required.length || 0} obligatorios</span>
+  `;
   return header;
+}
+
+function sectionSubtitle(section) {
+  const key = normalizeSearch(section).toLowerCase();
+  if (key.includes("prestador")) return "Informacion de la institucion";
+  if (key.includes("victima")) return "Datos del paciente";
+  if (key.includes("evento")) return "Informacion del evento";
+  if (key.includes("vehiculo") || key.includes("soat")) return "Datos del vehiculo y poliza";
+  if (key.includes("propietario")) return "Informacion del propietario";
+  if (key.includes("conductor")) return "Informacion del conductor";
+  if (key.includes("atencion")) return "Servicios prestados";
+  if (key.includes("remision")) return "Datos de remision";
+  if (key.includes("transporte")) return "Informacion de traslado";
+  return "Informacion requerida";
 }
 
 function renderField(field, row, rowNumber, templateId) {
@@ -1996,7 +2052,7 @@ function toInt(value) {
 }
 
 function statusMeta(label, index = 0) {
-  const key = normalizeSearch(label);
+  const key = normalizeSearch(label).toLowerCase();
   if (key.includes("prestador")) return { icon: "user", tone: "blue" };
   if (key.includes("victima")) return { icon: "users", tone: "purple" };
   if (key.includes("evento")) return { icon: "calendar", tone: "orange" };
@@ -2050,16 +2106,20 @@ function statusChipHtml({ label, done, required, errors: itemErrors = 0, meta })
 
 function renderStatus() {
   const total = errors.length;
-  globalStatus.textContent = total ? `${total} error(es)` : "Listo";
-  globalStatus.className = total ? "has-errors" : "is-ready";
-  document.querySelector("#status-title").innerHTML = `${iconMarkup("activity")}<span>Estado</span>`;
+  if (statusPanelLabel) {
+    statusPanelLabel.textContent = activeTemplate === "fur" ? "PROGRESO DEL FORMULARIO" : "ESTADO DE SERVICIOS";
+  }
   sectionList.replaceChildren();
 
   if (activeTemplate === "fur") {
     const sections = groupVisibleFields(schema.templates.fur.fields, state.fur, 1, "fur");
+    let totalDone = 0;
+    let totalRequired = 0;
     Object.keys(sections).forEach((section, index) => {
       const required = getSectionRequired(section, state.fur, 1, "fur");
       const done = required.filter((field) => clean(state.fur[field.name])).length;
+      totalDone += done;
+      totalRequired += required.length;
       const complete = required.length && done === required.length;
       const meta = statusMeta(section, index);
       const chip = document.createElement("div");
@@ -2073,9 +2133,16 @@ function renderStatus() {
       });
       sectionList.append(chip);
     });
+    const percent = totalRequired ? Math.round((totalDone / totalRequired) * 100) : 100;
+    globalStatus.textContent = `${totalDone}/${totalRequired} ${percent}%`;
+    globalStatus.className = total ? "has-errors" : "is-ready";
+    document.querySelector("#status-title").textContent = "Completado";
     return;
   }
 
+  globalStatus.textContent = total ? `${total} error(es)` : "Listo";
+  globalStatus.className = total ? "has-errors" : "is-ready";
+  document.querySelector("#status-title").textContent = "Servicios";
   state.ser.forEach((row, index) => {
     const rowNumber = index + 1;
     const rowErrors = errors.filter((item) => item.row === rowNumber).length;
