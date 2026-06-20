@@ -12,7 +12,7 @@ import sqlite3
 import importlib
 import unicodedata
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timedelta
 from http import HTTPStatus
 from http.cookies import SimpleCookie
 from email.message import Message
@@ -79,6 +79,8 @@ ROLE_SUPER_ADMIN = "super_admin"
 ROLE_FACTURADOR = "facturador"
 VALID_ROLES = {ROLE_SUPER_ADMIN, ROLE_FACTURADOR}
 SESSION_COOKIE = "adres_session"
+SESSION_IDLE_TIMEOUT_MINUTES = 15
+SESSION_IDLE_TIMEOUT = timedelta(minutes=SESSION_IDLE_TIMEOUT_MINUTES)
 DIVIPOLA_FIELD_NAMES = {
     "Codigo_municipio_residencia_victima",
     "Codigo_municipio_ocurrencia_evento",
@@ -212,6 +214,13 @@ SERVICIOS_SER_ITEMS = load_servicios_ser()
 
 def now_iso() -> str:
     return datetime.now().isoformat(timespec="seconds")
+
+
+def parse_iso_datetime(value: str) -> datetime | None:
+    try:
+        return datetime.fromisoformat(str(value or "").strip())
+    except ValueError:
+        return None
 
 
 def safe_error_text(exc: Exception) -> str:
@@ -559,7 +568,7 @@ def get_user_by_session(session_id: str) -> dict | None:
     with db_connect() as conn:
         row = conn.execute(
             """
-            SELECT u.id, u.username, u.display_name, u.role, u.active
+            SELECT u.id, u.username, u.display_name, u.role, u.active, s.last_seen_at
             FROM sessions s
             JOIN users u ON u.id = s.user_id
             WHERE s.id = ?
@@ -567,6 +576,10 @@ def get_user_by_session(session_id: str) -> dict | None:
             (session_id,),
         ).fetchone()
         if not row:
+            return None
+        last_seen = parse_iso_datetime(row["last_seen_at"])
+        if not last_seen or datetime.now() - last_seen > SESSION_IDLE_TIMEOUT:
+            conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
             return None
         if not row["active"]:
             conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
@@ -2126,7 +2139,11 @@ class AppHandler(BaseHTTPRequestHandler):
             )
             return
         if path == "/api/session":
-            self.send_json({"user": self.current_user(), "setupRequired": user_count() == 0})
+            cookie = SimpleCookie(self.headers.get("Cookie", ""))
+            morsel = cookie.get(SESSION_COOKIE)
+            if morsel:
+                delete_session(morsel.value)
+            self.send_auth_json({"user": None, "setupRequired": user_count() == 0}, clear=True)
             return
         if path == "/api/history":
             if not self.require_super_admin():
@@ -2202,6 +2219,12 @@ class AppHandler(BaseHTTPRequestHandler):
         path = unquote(urlparse(self.path).path)
         if path in {"/api/login", "/api/register", "/api/logout"}:
             self.handle_auth(path)
+            return
+
+        if path == "/api/session/heartbeat":
+            if not self.require_user():
+                return
+            self.send_json({"ok": True})
             return
 
         if path == "/api/servicios-ser/override":

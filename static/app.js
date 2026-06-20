@@ -18,9 +18,15 @@ const activeDraftId = {
   ser: null
 };
 let errors = [];
+let inactivityTimer = null;
+let lastActivitySyncAt = 0;
+let activitySyncPending = false;
 
 const STORAGE_KEY = "adres-fur-assistant";
 const INVOICE_PREFIX = "FVEE";
+const INACTIVITY_LIMIT_MS = 15 * 60 * 1000;
+const ACTIVITY_SYNC_MS = 60 * 1000;
+const ACTIVITY_EVENTS = ["click", "keydown", "mousemove", "scroll", "touchstart", "pointerdown"];
 const ICONS = {
   activity: '<path d="M3 12h4l3 8 4-16 3 8h4"/>',
   alert: '<path d="m21.7 18-8-14a2 2 0 0 0-3.4 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.7-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
@@ -150,11 +156,13 @@ async function init() {
     authMode = setupRequired ? "setup" : "login";
     bindAuth();
     bindChrome();
+    bindInactivityEvents();
     applyStaticIcons();
     normalizeAll();
     if (currentUser) {
       showApp();
       render();
+      startInactivityTimer();
     } else {
       showAuth();
     }
@@ -384,15 +392,73 @@ async function submitAuth() {
   document.querySelector("#auth-password").value = "";
   showApp();
   render();
+  startInactivityTimer();
 }
 
-async function logout() {
+async function logout(options = {}) {
   closeProfileMenu();
-  await fetch("/api/logout", { method: "POST" });
+  stopInactivityTimer();
+  try {
+    await fetch("/api/logout", { method: "POST" });
+  } catch (error) {
+    console.error(error);
+  }
   currentUser = null;
+  lastActivitySyncAt = 0;
+  activitySyncPending = false;
   authMode = setupRequired ? "setup" : "login";
   renderAuthMode();
   showAuth();
+  if (options.inactive) {
+    authMessage.textContent = "Sesion cerrada por inactividad.";
+    authMessage.className = "auth-message error";
+    authMessage.hidden = false;
+  }
+}
+
+function bindInactivityEvents() {
+  ACTIVITY_EVENTS.forEach((eventName) => {
+    window.addEventListener(eventName, resetInactivityTimer, { passive: true });
+  });
+}
+
+function startInactivityTimer() {
+  resetInactivityTimer();
+}
+
+function stopInactivityTimer() {
+  if (!inactivityTimer) return;
+  window.clearTimeout(inactivityTimer);
+  inactivityTimer = null;
+}
+
+function resetInactivityTimer() {
+  if (!currentUser) return;
+  syncSessionActivity();
+  stopInactivityTimer();
+  inactivityTimer = window.setTimeout(() => {
+    logout({ inactive: true });
+  }, INACTIVITY_LIMIT_MS);
+}
+
+function syncSessionActivity() {
+  const now = Date.now();
+  if (activitySyncPending || now - lastActivitySyncAt < ACTIVITY_SYNC_MS) return;
+  activitySyncPending = true;
+  fetch("/api/session/heartbeat", { method: "POST" })
+    .then((response) => {
+      if (response.status === 401 && currentUser) {
+        return logout({ inactive: true });
+      }
+      if (response.ok) lastActivitySyncAt = Date.now();
+      return null;
+    })
+    .catch((error) => {
+      console.error(error);
+    })
+    .finally(() => {
+      activitySyncPending = false;
+    });
 }
 
 function restoreState() {
