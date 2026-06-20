@@ -1100,7 +1100,6 @@ function activityList(items, dateKey) {
 function renderFur() {
   const template = schema.templates.fur;
   const sections = groupVisibleFields(template.fields, state.fur, 1, "fur");
-  content.append(renderFurSteps(sections));
   Object.entries(sections).forEach(([section, fields]) => {
     const wrapper = document.createElement("section");
     wrapper.className = "form-section";
@@ -1112,26 +1111,6 @@ function renderFur() {
     wrapper.append(grid);
     content.append(wrapper);
   });
-}
-
-function renderFurSteps(sections) {
-  const steps = document.createElement("div");
-  steps.className = "fur-steps";
-  Object.keys(sections).forEach((section, index) => {
-    const meta = statusMeta(section, index);
-    const step = document.createElement("div");
-    step.className = `fur-step tone-${meta.tone}`;
-    if (index === 0) step.classList.add("active");
-    step.innerHTML = `
-      <span class="section-icon" aria-hidden="true">${iconMarkup(meta.icon)}</span>
-      <span>
-        <strong>${index + 1} ${escapeHtml(section)}</strong>
-        <small>${escapeHtml(sectionSubtitle(section))}</small>
-      </span>
-    `;
-    steps.append(step);
-  });
-  return steps;
 }
 
 function renderSer() {

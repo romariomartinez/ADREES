@@ -1690,62 +1690,6 @@ h1 {
   color: #17304a;
 }
 
-.fur-steps {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 0;
-  overflow: hidden;
-  border: 1px solid #e0e7ee;
-  border-radius: 8px;
-  background: #ffffff;
-  box-shadow: 0 12px 30px rgba(28, 39, 51, 0.06);
-}
-
-.fur-step {
-  position: relative;
-  display: grid;
-  grid-template-columns: 46px minmax(0, 1fr);
-  align-items: center;
-  gap: 12px;
-  min-height: 76px;
-  padding: 14px 20px;
-  border-right: 1px solid #e7edf2;
-}
-
-.fur-step:last-child {
-  border-right: 0;
-}
-
-.fur-step.active {
-  background: linear-gradient(90deg, #e5f8f7 0%, #f1fbfb 100%);
-}
-
-.fur-step.active::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 3px;
-  background: var(--accent);
-}
-
-.fur-step strong,
-.fur-step small {
-  display: block;
-}
-
-.fur-step strong {
-  color: #17304a;
-  font-size: 14px;
-  font-weight: 850;
-}
-
-.fur-step small {
-  color: #637589;
-  font-size: 12px;
-}
-
 .section-title {
   min-height: 76px;
   padding: 18px 22px;
@@ -1899,7 +1843,6 @@ body:has(#app-shell:not([hidden])) {
 }
 
 #app-shell .topbar,
-#app-shell .fur-steps,
 #app-shell .form-section,
 #app-shell .service-row,
 #app-shell .row-toolbar {
@@ -1908,10 +1851,6 @@ body:has(#app-shell:not([hidden])) {
 
 #app-shell .section-title,
 #app-shell .service-row-head {
-  background: #ffffff;
-}
-
-#app-shell .fur-step.active {
   background: #ffffff;
 }
 
