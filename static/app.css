@@ -103,17 +103,12 @@ button {
   box-shadow: 0 0 28px rgba(50, 180, 180, 0.38);
 }
 
-.auth-visual-logo,
 .auth-wall-text,
 .auth-welcome,
 .auth-benefits,
 .auth-help {
   position: relative;
   z-index: 1;
-}
-
-.auth-visual-logo {
-  display: none;
 }
 
 .auth-wall-text {
